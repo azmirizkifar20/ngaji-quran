@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { BookOpen, Home as HomeIcon, Target, Trophy } from 'lucide-react';
+import { BookOpen, Home as HomeIcon, Target } from 'lucide-react';
 
 const Item = ({ to, icon: Icon, label }: { to: string; icon: any; label: string }) => (
   <NavLink
@@ -23,7 +23,7 @@ export default function NavBar() {
           <Item to="/" icon={HomeIcon} label="Home" />
           <Item to="/read" icon={BookOpen} label="Read" />
           <Item to="/goals" icon={Target} label="Goals" />
-          <Item to="/leaderboard" icon={Trophy} label="Leaderboard" />
+          
         </div>
       </div>
     </div>
