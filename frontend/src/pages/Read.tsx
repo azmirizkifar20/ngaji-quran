@@ -30,6 +30,7 @@ export default function Read() {
   const [open, setOpen] = useState<boolean>(false);
   const [jumpError, setJumpError] = useState<string | null>(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [query, setQuery] = useState<string>('');
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
   const didInitRef = useRef(false);
@@ -63,6 +64,15 @@ export default function Read() {
   }, [searchParams]);
 
   const currentChapter = useMemo(() => chapters.find(c => c.id === chapter), [chapters, chapter]);
+  const filteredChapters = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return chapters;
+    return chapters.filter((c) => {
+      const name = (c.name_simple || '').toLowerCase();
+      const nameAr = (c.name_arabic || '').toLowerCase();
+      return name.includes(q) || nameAr.includes(q) || String(c.id).startsWith(q);
+    });
+  }, [chapters, query]);
   const maxAyah = currentChapter?.verses_count ?? 0;
 
   const header = useMemo(() => {
@@ -175,8 +185,15 @@ export default function Read() {
 
         {open && (
           <div className="mt-3 space-y-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari surat (nama / nomor)"
+              className="w-full rounded-xl2 border border-zinc-200 px-4 py-3 text-sm outline-none focus:border-zinc-400"
+            />
+
             <div className="max-h-52 overflow-auto rounded-xl2 border border-zinc-100">
-              {chapters.map(c => (
+              {filteredChapters.map(c => (
                 <button
                   key={c.id}
                   onClick={() => { setChapter(c.id); setJumpError(null); }}
@@ -188,6 +205,9 @@ export default function Read() {
                   <span className="text-xs text-zinc-500">{c.verses_count} ayat</span>
                 </button>
               ))}
+              {filteredChapters.length === 0 && (
+                <div className="px-4 py-3 text-sm text-zinc-500">Surat tidak ditemukan.</div>
+              )}
             </div>
 
             <div className="flex gap-2">
