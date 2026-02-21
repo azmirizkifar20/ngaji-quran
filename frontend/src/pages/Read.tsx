@@ -119,7 +119,7 @@ export default function Read() {
       return;
     }
     setJumpError(null);
-    const key = `:`;
+    const key = `${chapter}:${verseNum}`;
     setLoading(true);
     try {
       const res = await api.verse(key);
