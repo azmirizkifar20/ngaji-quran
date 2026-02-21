@@ -1,5 +1,5 @@
-import NodeCache from 'node-cache';
-import { getEnv } from '../../config/env';
+﻿import NodeCache from 'node-cache';
+import { getEnv } from '../../config/env.js';
 
 const env = getEnv();
 const cache = new NodeCache({ stdTTL: env.CACHE_TTL_SECONDS, checkperiod: 120 });

@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import type { Db } from '../../database/connection';
-import { makeUserController } from './user.controller';
+﻿import { Router } from 'express';
+import type { Db } from '../../database/connection.js';
+import { makeUserController } from './user.controller.js';
 
 export function makeUserRouter(db: Db) {
   const r = Router();

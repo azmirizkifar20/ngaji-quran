@@ -1,5 +1,5 @@
-import type { Db } from '../../database/connection';
-import { userRepository } from './user.repository';
+﻿import type { Db } from '../../database/connection.js';
+import { userRepository } from './user.repository.js';
 
 function toISODateUTC(d: Date) {
   const y = d.getUTCFullYear();

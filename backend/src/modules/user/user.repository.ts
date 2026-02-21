@@ -1,4 +1,4 @@
-import type { Db } from '../../database/connection';
+﻿import type { Db } from '../../database/connection.js';
 
 export type UserStateRow = {
   id: string;                 // userId

@@ -1,7 +1,7 @@
-import type { RequestHandler } from 'express';
+﻿import type { RequestHandler } from 'express';
 import { z } from 'zod';
-import type { Db } from '../../database/connection';
-import { userService } from '../user/user.service';
+import type { Db } from '../../database/connection.js';
+import { userService } from '../user/user.service.js';
 
 export function makeLeaderboardController(db: Db) {
   const getLeaderboard: RequestHandler = async (req, res, next) => {

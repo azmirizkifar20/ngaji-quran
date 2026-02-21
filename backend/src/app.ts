@@ -1,14 +1,14 @@
-import express from 'express';
+﻿import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
-import type { Db } from './database/connection';
-import { getEnv } from './config/env';
-import { quranRouter } from './modules/quran/quran.routes';
-import { userIdentity } from './middlewares/user';
-import { makeUserRouter } from './modules/user/user.routes';
-import { errorHandler } from './middlewares/error';
+import type { Db } from './database/connection.js';
+import { getEnv } from './config/env.js';
+import { quranRouter } from './modules/quran/quran.routes.js';
+import { userIdentity } from './middlewares/user.js';
+import { makeUserRouter } from './modules/user/user.routes.js';
+import { errorHandler } from './middlewares/error.js';
 
 export function createApp(db: Db) {
   const env = getEnv();

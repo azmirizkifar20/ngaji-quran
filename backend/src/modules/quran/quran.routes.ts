@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { getChapter, getChapters, getVerse, getPage } from './quran.controller';
+﻿import { Router } from 'express';
+import { getChapter, getChapters, getVerse, getPage } from './quran.controller.js';
 
 export const quranRouter = Router();
 

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
@@ -22,7 +22,7 @@ export function getEnv(): Env {
   if (!parsed.success) {
     // keep the error readable in logs
     // eslint-disable-next-line no-console
-    console.error('❌ Invalid environment variables:', parsed.error.flatten());
+    console.error('âŒ Invalid environment variables:', parsed.error.flatten());
     throw new Error('Invalid environment variables');
   }
 

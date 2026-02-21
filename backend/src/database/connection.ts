@@ -1,5 +1,5 @@
-import knex, { Knex } from 'knex';
-import { getEnv } from '../config/env';
+﻿import knex, { Knex } from 'knex';
+import { getEnv } from '../config/env.js';
 
 export type Db = Knex;
 

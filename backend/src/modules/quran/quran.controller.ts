@@ -1,6 +1,6 @@
-import type { RequestHandler } from 'express';
+﻿import type { RequestHandler } from 'express';
 import { z } from 'zod';
-import { quranService } from './quran.service';
+import { quranService } from './quran.service.js';
 
 export const getChapters: RequestHandler = async (_req, res, next) => {
   try {

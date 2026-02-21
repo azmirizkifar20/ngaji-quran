@@ -1,9 +1,9 @@
-import 'dotenv/config';
-import { createDb } from './database/connection';
-import { migrateLatest } from './database/migrate';
-import { createApp } from './app';
-import { getEnv } from './config/env';
-import { userRepository } from './modules/user/user.repository';
+﻿import 'dotenv/config';
+import { createDb } from './database/connection.js';
+import { migrateLatest } from './database/migrate.js';
+import { createApp } from './app.js';
+import { getEnv } from './config/env.js';
+import { userRepository } from './modules/user/user.repository.js';
 
 async function main() {
   const env = getEnv();
@@ -19,12 +19,12 @@ async function main() {
 
   app.listen(env.PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`✅ Backend (Enterprise: routes/controllers/services) running on http://localhost:${env.PORT}`);
+    console.log(`âœ… Backend (Enterprise: routes/controllers/services) running on http://localhost:${env.PORT}`);
   });
 }
 
 main().catch((e) => {
   // eslint-disable-next-line no-console
-  console.error('❌ Failed to start', e);
+  console.error('âŒ Failed to start', e);
   process.exit(1);
 });
