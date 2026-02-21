@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { useAppStore } from '../store/useAppStore';
-import { api } from '../lib/api';
+import { api, Verse } from '../lib/api';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import MushafPage from '../components/MushafPage';
 
 function parseVerseKey(key: string) {
   const [c, v] = key.split(':').map(Number);
@@ -15,7 +16,7 @@ export default function Read() {
   const { chapters, state, bootstrap, updateProgress } = useAppStore();
 
   const [pageNumber, setPageNumber] = useState<number>(state?.lastPageNumber ?? 1);
-  const [verses, setVerses] = useState<Array<{ verse_key: string; text_uthmani: string }>>([]);
+  const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   // jump controls (surah+ayah -> page)
@@ -29,14 +30,22 @@ export default function Read() {
 
   const currentChapter = useMemo(() => chapters.find(c => c.id === chapter), [chapters, chapter]);
 
+  const header = useMemo(() => {
+    const first = verses[0];
+    const juz = first?.juz_number;
+    // derive surah from first verse_key
+    const surahId = first?.verse_key ? Number(first.verse_key.split(':')[0]) : undefined;
+    const surahName = surahId ? chapters.find(c => c.id === surahId)?.name_simple : undefined;
+    return { juz, surahName };
+  }, [verses, chapters]);
+
   async function loadPage(p: number) {
     setLoading(true);
     try {
       const res = await api.byPage(p);
-      const list = (res.verses || []).map(v => ({ verse_key: v.verse_key, text_uthmani: v.text_uthmani }));
-      setVerses(list);
+      setVerses(res.verses || []);
 
-      const lastKey = list.length ? list[list.length - 1].verse_key : `${chapter}:${verse}`;
+      const lastKey = res.verses?.length ? res.verses[res.verses.length - 1].verse_key : `${chapter}:${verse}`;
       await updateProgress(lastKey, p);
     } finally {
       setLoading(false);
@@ -54,26 +63,21 @@ export default function Read() {
     try {
       const res = await api.verse(key);
       setPageNumber(res.verse.page_number);
-      // progress will be saved by loadPage()
     } finally {
       setLoading(false);
       setOpen(false);
     }
   }
 
-  function nextPage() {
-    setPageNumber(p => Math.min(604, p + 1));
-  }
-  function prevPage() {
-    setPageNumber(p => Math.max(1, p - 1));
-  }
+  function nextPage() { setPageNumber(p => Math.min(604, p + 1)); }
+  function prevPage() { setPageNumber(p => Math.max(1, p - 1)); }
 
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xl font-semibold tracking-tight">Baca (Per Halaman)</div>
-          <div className="text-sm text-zinc-500">Mode mushaf • 1 page = banyak ayat</div>
+          <div className="text-xl font-semibold tracking-tight">True Mushaf Mode</div>
+          <div className="text-sm text-zinc-500">Layout 15 baris • auto-scale untuk mobile</div>
         </div>
         <div className="rounded-xl2 border border-zinc-100 bg-white px-3 py-2 shadow-soft text-right">
           <div className="text-xs text-zinc-500">Page</div>
@@ -133,29 +137,17 @@ export default function Read() {
         )}
       </Card>
 
-      <Card className="p-4">
-        <motion.div
-          key={`page:${pageNumber}`}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.22 }}
-          className="space-y-4"
-        >
-          {loading && verses.length === 0 ? (
-            <div className="text-sm text-zinc-500">Loading...</div>
-          ) : (
-            <div className="space-y-5">
-              {verses.map((v) => (
-                <div key={v.verse_key} className="rounded-xl2 bg-white">
-                  <div className="mb-2 text-xs text-zinc-500">{v.verse_key}</div>
-                  <div className="arabic select-text">{v.text_uthmani}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+      <motion.div
+        key={`page:${pageNumber}`}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.22 }}
+      >
+        <MushafPage pageNumber={pageNumber} verses={verses} header={header} />
+      </motion.div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3">
+      <Card className="p-4">
+        <div className="grid grid-cols-2 gap-3">
           <Button variant="secondary" onClick={prevPage} disabled={loading || pageNumber <= 1}>Prev Page</Button>
           <Button onClick={nextPage} disabled={loading || pageNumber >= 604}>Next Page</Button>
         </div>
@@ -166,9 +158,10 @@ export default function Read() {
       </Card>
 
       <Card className="p-4">
-        <div className="text-sm font-semibold">Typography premium</div>
+        <div className="text-sm font-semibold">Catatan font mushaf</div>
         <div className="mt-1 text-sm text-zinc-600">
-          Default font: <span className="font-medium">Amiri Quran</span>. Untuk tampilan paling mirip mushaf Madinah, taruh font QCF/Uthmanic Hafs di <code className="rounded bg-zinc-50 px-1">frontend/public/fonts</code> lalu aktifkan di <code className="rounded bg-zinc-50 px-1">src/styles/arabic-fonts.css</code>.
+          Untuk hasil paling mirip mushaf, wajib pakai font glyph (contoh: <span className="font-medium">UthmanicHafs.woff2</span>).
+          Kalau font belum ada, beberapa glyph bisa tampil kurang pas.
         </div>
       </Card>
     </div>

@@ -14,3 +14,39 @@ body {
 @media (max-width: 420px) {
   .arabic { font-size: 24px; line-height: 2.1; }
 }
+
+/* True Mushaf layout (15 lines) */
+.mushaf-page{
+  direction: rtl;
+  unicode-bidi: plaintext;
+}
+
+.mushaf-line{
+  height: 44px;              /* tuned with font-size; scaled by container transform */
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.mushaf-glyph{
+  font-family: "Uthmanic", "Amiri Quran", serif;
+  font-size: 34px;
+  line-height: 1;
+  color: #111827;
+}
+@media (max-width: 420px){
+  .mushaf-line{ height: 40px; }
+  .mushaf-glyph{ font-size: 32px; }
+}
+
+/* Ayah number separator (fallback mode) */
+.ayah-sep{
+  display: inline-block;
+  font-family: "Noto Naskh Arabic", "Amiri Quran", "Uthmanic", serif;
+  font-size: 0.95em;
+  opacity: 0.9;
+  margin: 0 0.08em;
+}

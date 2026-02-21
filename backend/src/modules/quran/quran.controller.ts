@@ -36,7 +36,8 @@ export const getChapter: RequestHandler = async (req, res, next) => {
 export const getPage: RequestHandler = async (req, res, next) => {
   try {
     const pageNumber = z.coerce.number().int().min(1).max(604).parse(req.query.pageNumber);
-    const data = await quranService.versesByPage(pageNumber);
+    const words = z.coerce.boolean().optional().parse(req.query.words ?? 'true');
+    const data = await quranService.versesByPage(pageNumber, words);
     res.json(data);
   } catch (e) {
     next(e);
