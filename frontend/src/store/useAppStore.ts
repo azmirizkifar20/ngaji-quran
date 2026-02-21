@@ -1,13 +1,16 @@
 import { create } from 'zustand';
-import { api, Chapter, UserState } from '../lib/api';
+import { api, Chapter, LeaderboardRow, UserState } from '../lib/api';
 
 type AppState = {
   chapters: Chapter[];
   state?: UserState;
+  leaderboard: LeaderboardRow[];
   loading: boolean;
   error?: string;
 
   bootstrap: () => Promise<void>;
+  refreshLeaderboard: () => Promise<void>;
+  setName: (name: string) => Promise<void>;
   updateProgress: (verseKey: string, pageNumber: number) => Promise<void>;
   updateGoals: (targetDays: number) => Promise<void>;
   checkIn: () => Promise<void>;
@@ -15,6 +18,7 @@ type AppState = {
 
 export const useAppStore = create<AppState>((set, get) => ({
   chapters: [],
+  leaderboard: [],
   loading: false,
 
   bootstrap: async () => {
@@ -25,6 +29,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     } catch (e: any) {
       set({ loading: false, error: e.message || 'Gagal load data' });
     }
+  },
+
+  refreshLeaderboard: async () => {
+    const res = await api.leaderboard(20);
+    set({ leaderboard: res.leaderboard });
+  },
+
+  setName: async (name: string) => {
+    const trimmed = name.trim();
+    const res = await api.setProfile({ name: trimmed.length ? trimmed : null });
+    set({ state: res.state });
   },
 
   updateProgress: async (verseKey, pageNumber) => {

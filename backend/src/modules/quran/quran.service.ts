@@ -54,4 +54,17 @@ export const quranService = {
     );
     return cachedFetchJson(url.toString());
   },
+
+
+  async versesByPage(pageNumber: number) {
+    const url = new URL(`${env.QURAN_COM_BASE_URL}/verses/by_page/${pageNumber}`);
+    url.searchParams.set('language', 'id');
+    url.searchParams.set('per_page', '300');
+    url.searchParams.set('page', '1');
+    url.searchParams.set(
+      'fields',
+      'text_uthmani,verse_key,page_number,juz_number,hizb_number,rub_el_hizb_number'
+    );
+    return cachedFetchJson(url.toString());
+  },
 };

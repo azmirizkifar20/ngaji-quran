@@ -6,6 +6,8 @@ import morgan from 'morgan';
 import type { Db } from './database/connection';
 import { getEnv } from './config/env';
 import { quranRouter } from './modules/quran/quran.routes';
+import { userIdentity } from './middlewares/user';
+import { makeLeaderboardRouter } from './modules/leaderboard/leaderboard.routes';
 import { makeUserRouter } from './modules/user/user.routes';
 import { errorHandler } from './middlewares/error';
 
@@ -32,8 +34,12 @@ export function createApp(db: Db) {
 
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
+  // attach lightweight user identity (x-user-id)
+  app.use(userIdentity);
+
   app.use('/api/quran', quranRouter);
   app.use('/api/user', makeUserRouter(db));
+  app.use('/api/leaderboard', makeLeaderboardRouter(db));
 
   app.use(errorHandler);
 

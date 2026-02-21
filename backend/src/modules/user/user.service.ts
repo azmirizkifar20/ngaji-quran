@@ -9,23 +9,37 @@ function toISODateUTC(d: Date) {
 }
 
 export const userService = {
-  async getState(db: Db) {
-    return userRepository.get(db);
+  async ensure(db: Db, userId: string) {
+    await userRepository.upsertDefault(db, userId);
   },
 
-  async setProgress(db: Db, data: { lastVerseKey: string; lastPageNumber: number }) {
+  async getState(db: Db, userId: string) {
+    await this.ensure(db, userId);
+    return userRepository.get(db, userId);
+  },
+
+  async setProfile(db: Db, userId: string, data: { name: string | null }) {
+    await this.ensure(db, userId);
     const now = new Date().toISOString();
-    return userRepository.update(db, { ...data, updatedAt: now });
+    return userRepository.update(db, userId, { name: data.name, updatedAt: now });
   },
 
-  async setGoals(db: Db, data: { targetDays: number; startDate?: string }) {
+  async setProgress(db: Db, userId: string, data: { lastVerseKey: string; lastPageNumber: number }) {
+    await this.ensure(db, userId);
+    const now = new Date().toISOString();
+    return userRepository.update(db, userId, { ...data, updatedAt: now });
+  },
+
+  async setGoals(db: Db, userId: string, data: { targetDays: number; startDate?: string }) {
+    await this.ensure(db, userId);
     const now = new Date().toISOString();
     const startDate = data.startDate ?? now;
-    return userRepository.update(db, { targetDays: data.targetDays, startDate, updatedAt: now });
+    return userRepository.update(db, userId, { targetDays: data.targetDays, startDate, updatedAt: now });
   },
 
-  async checkIn(db: Db) {
-    const state = await userRepository.get(db);
+  async checkIn(db: Db, userId: string) {
+    await this.ensure(db, userId);
+    const state = await userRepository.get(db, userId);
     const today = toISODateUTC(new Date());
     const last = state.lastCheckInDate;
 
@@ -52,6 +66,10 @@ export const userService = {
     }
 
     const now = new Date().toISOString();
-    return userRepository.update(db, { streak, xp, lastCheckInDate: today, updatedAt: now });
+    return userRepository.update(db, userId, { streak, xp, lastCheckInDate: today, updatedAt: now });
+  },
+
+  async leaderboard(db: Db, limit = 20) {
+    return userRepository.leaderboard(db, limit);
   },
 };

@@ -13,7 +13,7 @@ async function main() {
   await migrateLatest(db);
 
   // Ensure default row exists (single-user local state)
-  await userRepository.upsertDefault(db);
+  await userRepository.upsertDefault(db, 'local');
 
   const app = createApp(db);
 

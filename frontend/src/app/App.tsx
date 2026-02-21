@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Home from '../pages/Home';
 import Read from '../pages/Read';
 import Goals from '../pages/Goals';
+import Leaderboard from '../pages/Leaderboard';
 import NavBar from '../components/NavBar';
 
 function PageWrap({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="/" element={<PageWrap><Home /></PageWrap>} />
           <Route path="/read" element={<PageWrap><Read /></PageWrap>} />
           <Route path="/goals" element={<PageWrap><Goals /></PageWrap>} />
+          <Route path="/leaderboard" element={<PageWrap><Leaderboard /></PageWrap>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>

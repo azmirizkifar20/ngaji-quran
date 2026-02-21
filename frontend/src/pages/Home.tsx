@@ -21,7 +21,7 @@ export default function Home() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xl font-semibold tracking-tight">Ngaji Quran</div>
+          <div className="text-xl font-semibold tracking-tight">{state?.name ? `Ngaji Quran • ${state.name}` : 'Ngaji Quran'}</div>
           <div className="text-sm text-zinc-500">Premium light • fokus & konsisten</div>
         </div>
         <div className="rounded-xl2 border border-zinc-100 bg-white px-3 py-2 shadow-soft">

@@ -31,3 +31,14 @@ export const getChapter: RequestHandler = async (req, res, next) => {
     next(e);
   }
 };
+
+
+export const getPage: RequestHandler = async (req, res, next) => {
+  try {
+    const pageNumber = z.coerce.number().int().min(1).max(604).parse(req.query.pageNumber);
+    const data = await quranService.versesByPage(pageNumber);
+    res.json(data);
+  } catch (e) {
+    next(e);
+  }
+};
