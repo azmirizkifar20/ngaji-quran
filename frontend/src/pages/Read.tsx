@@ -215,7 +215,7 @@ export default function Read() {
             <div className="flex gap-2">
               <input
                 value={verseInput}
-                onChange={(e) => { setVerseInput(e.target.value.replace(/[^\\d]/g, '')); setJumpError(null); }}
+                onChange={(e) => { setVerseInput(e.target.value.replace(/[^\d]/g, '')); setJumpError(null); }}
                 type="number"
                 min={1}
                 className="w-full rounded-xl2 border border-zinc-200 px-4 py-3 text-sm outline-none focus:border-zinc-400"
