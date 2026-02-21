@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import ProgressRing from '../components/ProgressRing';
@@ -76,6 +76,15 @@ export default function Home() {
   const remainingToday = Math.max(0, perDay - dailyDone);
   const dailyPct = perDay > 0 ? Math.min(100, Math.round((dailyDone / perDay) * 100)) : 0;
   const pct = (current / total) * 100;
+  const lastVerseLabel = useMemo(() => {
+    const key = state?.lastVerseKey ?? '1:1';
+    const [cStr, vStr] = key.split(':');
+    const cId = Number(cStr);
+    const vId = Number(vStr);
+    const ch = chapters.find((x) => x.id === cId);
+    if (!ch || !vId) return key;
+    return `${ch.name_simple} ${vId}`;
+  }, [state?.lastVerseKey, chapters]);
 
   return (
     <div className="space-y-4">
@@ -182,7 +191,7 @@ export default function Home() {
       <Card className="p-4">
         <div className="text-sm font-semibold">Lanjut dari terakhir</div>
         <div className="mt-1 text-sm text-zinc-600">
-          Ayat terakhir: <span className="font-medium text-zinc-900">{state?.lastVerseKey ?? '1:1'}</span>
+          Ayat terakhir: <span className="font-medium text-zinc-900">{lastVerseLabel}</span>
         </div>
         <div className="mt-3">
           <a href="/read?pick=1" className="block">
