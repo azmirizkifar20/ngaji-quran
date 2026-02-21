@@ -25,14 +25,16 @@ body {
   height: 44px;              /* tuned with font-size; scaled by container transform */
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   white-space: nowrap;
   overflow: hidden;
+  padding-inline: 6px;
+  gap: 6px;
 }
 
 .mushaf-glyph{
-  font-family: "Uthmanic", "Amiri Quran", serif;
+  font-family: "LPMQ-IsepMisbah", serif;
   font-size: 34px;
   line-height: 1;
   color: #111827;
@@ -42,11 +44,47 @@ body {
   .mushaf-glyph{ font-size: 32px; }
 }
 
-/* Ayah number separator (fallback mode) */
-.ayah-sep{
+/* Shimmer loading bar */
+.shimmer-bar{
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(24,24,27,0.08) 0%, rgba(24,24,27,0.18) 50%, rgba(24,24,27,0.08) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.1s ease-in-out infinite;
+}
+.shimmer-line{
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(24,24,27,0.06) 0%, rgba(24,24,27,0.14) 50%, rgba(24,24,27,0.06) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.1s ease-in-out infinite;
+}
+@keyframes shimmer{
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Per-ayah layout (fallback mode) */
+.verse-block{
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
+.verse-text{
   display: inline-block;
-  font-family: "Noto Naskh Arabic", "Amiri Quran", "Uthmanic", serif;
-  font-size: 0.85em;
-  opacity: 0.9;
-  margin: 0 0.08em;
+  width: 100%;
+  font-family: "LPMQ-IsepMisbah", serif;
+  font-size: 30px;
+  line-height: 2.1;
+  text-align: right;
+}
+@media (max-width: 420px){
+  .verse-text{ font-size: 26px; line-height: 2.15; }
+  .verse-block{ padding: 10px 0; }
+}
+
+.ayah-paren{
+  display: inline-block;
+  margin-inline-start: 8px;
+  color: #b07b45;
+  font-size: 1.3em;
+  line-height: 1;
 }

@@ -61,6 +61,8 @@ export const quranService = {
     url.searchParams.set('language', 'id');
     url.searchParams.set('per_page', '300');
     url.searchParams.set('page', '1');
+    url.searchParams.set('words', 'true');
+    url.searchParams.set('word_fields', 'text_uthmani,code_v2,line_number,position');
     url.searchParams.set(
       'fields',
       'text_uthmani,verse_key,page_number,juz_number,hizb_number,rub_el_hizb_number'

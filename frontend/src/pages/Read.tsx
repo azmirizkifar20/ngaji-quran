@@ -24,11 +24,13 @@ export default function Read() {
   const [chapter, setChapter] = useState<number>(initial.chapter);
   const [verse, setVerse] = useState<number>(initial.verse);
   const [open, setOpen] = useState<boolean>(false);
+  const [jumpError, setJumpError] = useState<string | null>(null);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
   useEffect(() => { if (state?.lastPageNumber) setPageNumber(state.lastPageNumber); }, [state?.lastPageNumber]);
 
   const currentChapter = useMemo(() => chapters.find(c => c.id === chapter), [chapters, chapter]);
+  const maxAyah = currentChapter?.verses_count ?? 0;
 
   const header = useMemo(() => {
     const first = verses[0];
@@ -58,6 +60,11 @@ export default function Read() {
   }, [pageNumber]);
 
   async function jumpToSurahAyah() {
+    if (maxAyah > 0 && verse > maxAyah) {
+      setJumpError(`Ayat tidak ada di surat ${currentChapter?.name_simple ?? '#' + chapter}. Maksimal ayat ${maxAyah}.`);
+      return;
+    }
+    setJumpError(null);
     const key = `${chapter}:${verse}`;
     setLoading(true);
     try {
@@ -98,7 +105,7 @@ export default function Read() {
               {chapters.map(c => (
                 <button
                   key={c.id}
-                  onClick={() => { setChapter(c.id); }}
+                  onClick={() => { setChapter(c.id); setJumpError(null); }}
                   className={`flex w-full items-center justify-between px-4 py-3 text-sm hover:bg-zinc-50 ${
                     c.id === chapter ? 'bg-zinc-50' : ''
                   }`}
@@ -112,7 +119,7 @@ export default function Read() {
             <div className="flex gap-2">
               <input
                 value={verse}
-                onChange={(e) => setVerse(Math.max(1, Number(e.target.value || 1)))}
+                onChange={(e) => { setVerse(Math.max(1, Number(e.target.value || 1))); setJumpError(null); }}
                 type="number"
                 min={1}
                 className="w-full rounded-xl2 border border-zinc-200 px-4 py-3 text-sm outline-none focus:border-zinc-400"
@@ -124,6 +131,8 @@ export default function Read() {
                 </Button>
               </div>
             </div>
+            {loading && <div className="shimmer-bar" />}
+            {jumpError && <div className="text-xs text-red-600">{jumpError}</div>}
           </div>
         )}
       </Card>
@@ -134,7 +143,19 @@ export default function Read() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22 }}
       >
-        <MushafPage pageNumber={pageNumber} verses={verses} header={header} />
+        {loading ? (
+          <Card className="p-4">
+            <div className="space-y-3">
+              <div className="shimmer-line h-4 w-3/4" />
+              <div className="shimmer-line h-4 w-full" />
+              <div className="shimmer-line h-4 w-5/6" />
+              <div className="shimmer-line h-4 w-2/3" />
+              <div className="shimmer-line h-4 w-4/5" />
+            </div>
+          </Card>
+        ) : (
+          <MushafPage pageNumber={pageNumber} verses={verses} header={header} />
+        )}
       </motion.div>
 
       <Card className="p-4">

@@ -1,14 +1,14 @@
 @font-face {
-  font-family: "Uthmanic";
+  font-family: "LPMQ-IsepMisbah";
   src:
-    url("/fonts/UthmanicHafs.woff2") format("woff2"),
-    url("/fonts/UthmanicHafs.otf") format("truetype");
+    url("/fonts/LPMQ-IsepMisbah.woff2") format("woff2"),
+    url("/fonts/LPMQ-IsepMisbah.ttf") format("truetype");
   font-display: swap;
 }
 
 /* Default Arabic (fallback / non-mushaf) */
 .arabic {
-  font-family: "Uthmanic", "Amiri Quran", "Noto Naskh Arabic", serif;
+  font-family: "LPMQ-IsepMisbah", serif;
   direction: rtl;
   unicode-bidi: plaintext;
   text-align: right;

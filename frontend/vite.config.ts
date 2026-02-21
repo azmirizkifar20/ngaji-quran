@@ -24,6 +24,40 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/verses\.quran\.foundation\/fonts\/quran\/hafs\/v4\/colrv1\/woff2\/p\d+\.woff2$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'qcf-tajweed-fonts',
+              expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/css2\?/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-styles',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\//i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 },
+            },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/quran/page'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'quran-pages',
+              expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 7 },
+            },
+          },
+        ],
       }
     })
   ],

@@ -32,7 +32,7 @@ export default function MushafPage({
 
     const ro = new ResizeObserver(() => {
       const w = el.clientWidth;
-      const s = clamp(w / 420, 0.82, 1.08);
+      const s = clamp(w / 420, 0.82, 1.0);
       setScale(s);
     });
 
@@ -47,7 +47,10 @@ export default function MushafPage({
 
     const update = () => {
       const base = el.scrollHeight || el.getBoundingClientRect().height || 0;
-      if (base > 0) setScaledHeight(base * scale);
+      if (base > 0) {
+        const extra = 12; // add a little breathing room to avoid clipping
+        setScaledHeight(base * scale + extra);
+      }
     };
 
     update();
@@ -114,42 +117,25 @@ export default function MushafPage({
         <div className="font-semibold">{header.surahName ?? ''}</div>
       </div>
 
-      <div className="rounded-xl2 border border-zinc-100 bg-white py-2 px-0 sm:p-4 shadow-soft">
+      <div className="rounded-xl2 border border-zinc-100 bg-white py-2 px-0 sm:p-4 shadow-soft overflow-hidden">
         <div className="relative" style={{ height: scaledHeight }}>
           <div
             className="absolute left-0 right-0 top-0"
             style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}
           >
             <div ref={innerRef}>
-              {hasGlyphs ? (
-                <div className="mushaf-page">
-                  {lines.map((lineWords, idx) => (
-                    <div key={idx} className="mushaf-line" aria-label={`Line ${idx + 1}`}>
-                      {lineWords.map((w, i) => (
-                        <span
-                          key={i}
-                          className="mushaf-glyph"
-                          // code_v2 is an HTML entity string; rendered as glyph if font supports it
-                          dangerouslySetInnerHTML={{ __html: w.html }}
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  <div className="arabic leading-relaxed px-0 sm:px-8">
-                    {fallbackVerses.map((v) => (
-                      <span key={v.key} className="inline">
-                        {v.text}{' '}
-                        <span className="ayah-sep" aria-label={`Ayah ${v.ayah}`}>
-                          {"\uFD3F"}{v.ayahAr}{"\uFD3E"}
-                        </span>{' '}
+              <div className="arabic leading-relaxed px-0 sm:px-8">
+                {fallbackVerses.map((v) => (
+                  <div key={v.key} className="verse-block">
+                    <span className="verse-text">
+                      {v.text}{' '}
+                      <span className="ayah-paren" aria-label={`Ayah ${v.ayah}`}>
+                        {v.ayahAr}
                       </span>
-                    ))}
+                    </span>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </div>
         </div>
