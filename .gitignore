@@ -1,4 +1,5 @@
 backend/.env
+backend/dist
 backend/dev.db
 backend/node_modules
 frontend/.env

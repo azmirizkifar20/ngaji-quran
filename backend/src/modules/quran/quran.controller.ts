@@ -14,7 +14,7 @@ export const getChapters: RequestHandler = async (_req, res, next) => {
 export const getVerse: RequestHandler = async (req, res, next) => {
   try {
     const key = z.string().regex(/^\d+:\d+$/).parse(req.query.key);
-    const words = z.coerce.boolean().optional().parse(req.query.words ?? 'false');
+    const words = z.coerce.boolean().default(false).parse(req.query.words);
     const data = await quranService.verseByKey(key, words);
     res.json(data);
   } catch (e) {
@@ -36,8 +36,7 @@ export const getChapter: RequestHandler = async (req, res, next) => {
 export const getPage: RequestHandler = async (req, res, next) => {
   try {
     const pageNumber = z.coerce.number().int().min(1).max(604).parse(req.query.pageNumber);
-    const words = z.coerce.boolean().optional().parse(req.query.words ?? 'true');
-    const data = await quranService.versesByPage(pageNumber, words);
+    const data = await quranService.versesByPage(pageNumber);
     res.json(data);
   } catch (e) {
     next(e);
