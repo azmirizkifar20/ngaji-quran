@@ -139,8 +139,8 @@ export default function Read() {
 
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="secondary" onClick={prevPage} disabled={loading || pageNumber <= 1}>Prev Page</Button>
           <Button onClick={nextPage} disabled={loading || pageNumber >= 604}>Next Page</Button>
+          <Button variant="secondary" onClick={prevPage} disabled={loading || pageNumber <= 1}>Prev Page</Button>
         </div>
 
         <div className="mt-3 text-xs text-zinc-500">
