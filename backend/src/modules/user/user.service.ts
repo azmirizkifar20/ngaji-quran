@@ -72,4 +72,19 @@ export const userService = {
   async leaderboard(db: Db, limit = 20) {
     return userRepository.leaderboard(db, limit);
   },
+
+  async resetState(db: Db, userId: string) {
+    await this.ensure(db, userId);
+    const now = new Date().toISOString();
+    return userRepository.update(db, userId, {
+      lastVerseKey: '1:1',
+      lastPageNumber: 1,
+      targetDays: 30,
+      startDate: now,
+      streak: 0,
+      lastCheckInDate: null,
+      xp: 0,
+      updatedAt: now,
+    });
+  },
 };

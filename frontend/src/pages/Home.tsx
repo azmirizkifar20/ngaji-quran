@@ -5,9 +5,10 @@ import ProgressRing from '../components/ProgressRing';
 import { useAppStore } from '../store/useAppStore';
 import { pagesLeft, pagesPerDay, remainingDaysFromStart, prettyDate } from '../lib/format';
 import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { api } from '../lib/api';
 
 export default function Home() {
-  const { bootstrap, state, loading, error, checkIn, chapters } = useAppStore();
+  const { bootstrap, state, loading, error, checkIn, chapters, updateProgress } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
   const [todayStr, setTodayStr] = useState<string>(new Date().toISOString().slice(0, 10));
   const [history7, setHistory7] = useState<number[]>([]);
@@ -203,6 +204,39 @@ export default function Home() {
           >
             Check-in hari ini
           </Button>
+          <button
+            type="button"
+            className="mt-3 w-full text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            onClick={async () => {
+              const Swal = (window as any).Swal;
+              const result = Swal
+                ? await Swal.fire({
+                    title: 'Reset progress?',
+                    text: 'Semua progress, streak, dan XP akan direset. Bookmark tetap.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Reset',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#ef4444',
+                  })
+                : { isConfirmed: window.confirm('Reset semua progress (kecuali bookmark)?') };
+              if (!result.isConfirmed) return;
+
+              localStorage.removeItem('ngaji_saved_pages_v1');
+              localStorage.removeItem('ngaji_history_v1');
+              localStorage.removeItem('ngaji_page_meta_v1');
+              localStorage.removeItem('ngaji_daily_date');
+              localStorage.removeItem('ngaji_daily_start_page');
+              localStorage.removeItem('ngaji_daily_done');
+
+              await api.reset();
+              await bootstrap();
+              setToast('Progress direset');
+              setTimeout(() => setToast(null), 1800);
+            }}
+          >
+            Reset data (kecuali bookmark)
+          </button>
         </div>
       </Card>
 

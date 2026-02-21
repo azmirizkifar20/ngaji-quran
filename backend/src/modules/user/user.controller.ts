@@ -76,5 +76,15 @@ export function makeUserController(db: Db) {
     }
   };
 
-  return { getState, setProfile, setProgress, setGoals, checkIn };
+  const resetState: RequestHandler = async (req, res, next) => {
+    try {
+      const userId = req.userId || 'local';
+      const state = await userService.resetState(db, userId);
+      res.json({ state });
+    } catch (e) {
+      next(e);
+    }
+  };
+
+  return { getState, setProfile, setProgress, setGoals, checkIn, resetState };
 }

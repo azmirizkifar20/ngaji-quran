@@ -96,6 +96,7 @@ export const api = {
   setGoals: (data: { targetDays: number; startDate?: string }) =>
     j<{ state: UserState }>(`/api/user/goals`, { method: 'POST', body: JSON.stringify(data) }),
   checkIn: () => j<{ state: UserState }>(`/api/user/checkin`, { method: 'POST', body: '{}' }),
+  reset: () => j<{ state: UserState }>(`/api/user/reset`, { method: 'POST', body: '{}' }),
 
   leaderboard: (limit = 20) => j<{ leaderboard: LeaderboardRow[] }>(`/api/leaderboard?limit=${limit}`),
 };
