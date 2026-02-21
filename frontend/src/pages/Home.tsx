@@ -81,12 +81,12 @@ export default function Home() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xl font-semibold tracking-tight">{state?.name ? `Ngaji Quran • ${state.name}` : 'Ngaji Quran'}</div>
-          <div className="text-sm text-zinc-500">Premium light • fokus & konsisten</div>
+          <div className="text-lg sm:text-xl font-semibold tracking-tight">{state?.name ? `Ngaji Quran • ${state.name}` : 'Ngaji Quran'}</div>
+          <div className="text-xs sm:text-sm text-zinc-500">Premium light • fokus & konsisten</div>
         </div>
         <div className="rounded-xl2 border border-zinc-100 bg-white px-3 py-2 shadow-soft">
           <div className="text-xs text-zinc-500">XP</div>
-          <div className="text-sm font-semibold">{state?.xp ?? 0}</div>
+          <div className="text-sm sm:text-base font-semibold">{state?.xp ?? 0}</div>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export default function Home() {
           <ProgressRing value={pct} label={`Halaman ${current} / ${total}`} />
           <div className="text-right">
             <div className="text-xs text-zinc-500">Sisa</div>
-            <div className="text-lg font-semibold">{left} halaman</div>
+            <div className="text-base sm:text-lg font-semibold">{left} halaman</div>
           </div>
         </div>
 
@@ -111,13 +111,13 @@ export default function Home() {
             <div className="flex items-center gap-2 text-xs text-zinc-500">
               <Flame size={16} /> Streak
             </div>
-            <div className="mt-1 text-lg font-semibold">{state?.streak ?? 0} hari</div>
+            <div className="mt-1 text-base sm:text-lg font-semibold">{state?.streak ?? 0} hari</div>
           </div>
           <div className="rounded-xl2 bg-zinc-50 p-3">
             <div className="flex items-center gap-2 text-xs text-zinc-500">
               <Sparkles size={16} /> Target/hari
             </div>
-            <div className="mt-1 text-lg font-semibold">{perDay} halaman</div>
+            <div className="mt-1 text-base sm:text-lg font-semibold">{perDay} halaman</div>
           </div>
         </div>
 

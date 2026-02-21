@@ -23,7 +23,7 @@ export default function App() {
   const location = useLocation();
 
   return (
-    <div className="mx-auto max-w-[520px] px-4 pb-24 pt-4">
+    <div className="mx-auto max-w-[720px] px-4 pb-24 pt-4">
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageWrap><Home /></PageWrap>} />
