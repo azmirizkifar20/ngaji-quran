@@ -69,7 +69,7 @@ body {
   border-bottom: 1px solid rgba(17, 24, 39, 0.08);
 }
 .verse-text{
-  display: inline-block;
+  display: block;
   width: 100%;
   font-family: "LPMQ-IsepMisbah", serif;
   font-size: 30px;
@@ -87,4 +87,62 @@ body {
   color: #b07b45;
   font-size: 1.3em;
   line-height: 1;
+}
+
+.bookmark-btn{
+  margin-inline-start: 10px;
+  border: 1px solid rgba(17,24,39,0.1);
+  background: #fff;
+  color: #a1a1aa;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  line-height: 1;
+  vertical-align: middle;
+}
+.bookmark-btn.is-active{
+  color: #f59e0b;
+  border-color: rgba(245,158,11,0.4);
+  background: rgba(245,158,11,0.08);
+}
+
+.save-progress-btn{
+  margin-inline-start: 6px;
+  border: 1px solid rgba(0,0,0,0.25);
+  background: transparent;
+  color: #111827;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  min-width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.save-progress-btn.is-active{
+  background: transparent;
+  border-color: rgba(245,158,11,0.8);
+  color: #b45309;
+}
+
+.mini-bar-row{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  align-items: end;
+  height: 48px;
+}
+.mini-bar{
+  background: rgba(17,24,39,0.06);
+  border-radius: 6px;
+  overflow: hidden;
+  height: 100%;
+}
+.mini-bar-fill{
+  width: 100%;
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  border-radius: 6px 6px 0 0;
 }

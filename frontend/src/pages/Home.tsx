@@ -7,38 +7,67 @@ import { pagesLeft, pagesPerDay, prettyDate } from '../lib/format';
 import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function Home() {
-  const { bootstrap, state, loading, error, checkIn } = useAppStore();
+  const { bootstrap, state, loading, error, checkIn, chapters } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
+  const [history7, setHistory7] = useState<number[]>([]);
+  const [history30, setHistory30] = useState<number[]>([]);
+  const [surahStat, setSurahStat] = useState<{ name: string; current: number; total: number } | null>(null);
+  const [juzStat, setJuzStat] = useState<{ juz: number; index: number; total: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
   useEffect(() => {
     if (!state?.lastPageNumber) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const keyDate = 'ngaji_daily_date';
-    const keyStart = 'ngaji_daily_start_page';
-    const keyDone = 'ngaji_daily_done';
 
-    const storedDate = localStorage.getItem(keyDate);
-    let startPage = Number(localStorage.getItem(keyStart) || state.lastPageNumber);
-    let done = Number(localStorage.getItem(keyDone) || 0);
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
 
-    if (storedDate !== today) {
-      startPage = state.lastPageNumber;
-      done = 0;
-      localStorage.setItem(keyDate, today);
-      localStorage.setItem(keyStart, String(startPage));
-      localStorage.setItem(keyDone, String(done));
+    const raw = localStorage.getItem('ngaji_history_v1');
+    const history = raw ? (JSON.parse(raw) as Record<string, number[]>) : {};
+    const todayCount = (history[todayStr] || []).length;
+    setDailyDone(todayCount);
+
+    function getCounts(days: number) {
+      const out: number[] = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        out.push((history[key] || []).length);
+      }
+      return out;
     }
 
-    const diff = Math.max(0, state.lastPageNumber - startPage);
-    if (diff !== done) {
-      done = diff;
-      localStorage.setItem(keyDone, String(done));
+    const h7 = getCounts(7);
+    const h30 = getCounts(30);
+    setHistory7(h7);
+    setHistory30(h30);
+
+
+    const [cStr, vStr] = (state.lastVerseKey || '1:1').split(':');
+    const cId = Number(cStr);
+    const vId = Number(vStr);
+    const ch = chapters.find(x => x.id === cId);
+    if (ch) {
+      setSurahStat({ name: ch.name_simple, current: vId, total: ch.verses_count });
+    } else {
+      setSurahStat(null);
     }
 
-    setDailyDone(done);
-  }, [state?.lastPageNumber]);
+    const metaRaw = localStorage.getItem('ngaji_page_meta_v1');
+    const meta = metaRaw ? (JSON.parse(metaRaw) as Record<string, { juz: number; surah: number }>) : {};
+    const currentMeta = meta[String(state.lastPageNumber)];
+    if (currentMeta?.juz) {
+      const pages = Object.keys(meta)
+        .map(k => Number(k))
+        .filter(p => meta[String(p)]?.juz === currentMeta.juz)
+        .sort((a, b) => a - b);
+      const index = pages.filter(p => p <= state.lastPageNumber).length;
+      setJuzStat({ juz: currentMeta.juz, index, total: pages.length });
+    } else {
+      setJuzStat(null);
+    }
+  }, [state?.lastPageNumber, state?.lastVerseKey, chapters, state?.totalPages]);
 
   const total = state?.totalPages ?? 604;
   const current = state?.lastPageNumber ?? 1;
@@ -117,6 +146,23 @@ export default function Home() {
           Mulai: {state?.startDate ? prettyDate(state.startDate) : '-'} • Target: {state?.targetDays ?? 30} hari
         </div>
 
+        {(surahStat || juzStat) && (
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="rounded-xl2 bg-zinc-50 p-3">
+              <div className="text-xs text-zinc-500">Surat saat ini</div>
+              <div className="mt-1 text-sm font-semibold">
+                {surahStat ? `${surahStat.name} ${surahStat.current}/${surahStat.total}` : '-'}
+              </div>
+            </div>
+            <div className="rounded-xl2 bg-zinc-50 p-3">
+              <div className="text-xs text-zinc-500">Juz saat ini</div>
+              <div className="mt-1 text-sm font-semibold">
+                {juzStat ? `Juz ${juzStat.juz} • ${juzStat.index}/${juzStat.total}` : '-'}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-4">
           <Button
             variant="secondary"
@@ -139,17 +185,43 @@ export default function Home() {
           Ayat terakhir: <span className="font-medium text-zinc-900">{state?.lastVerseKey ?? '1:1'}</span>
         </div>
         <div className="mt-3">
-          <a href="/read" className="block">
+          <a href="/read?pick=1" className="block">
             <Button>Mulai baca</Button>
           </a>
         </div>
         <div className="mt-3">
           <a
-            href="/read"
+            href={`/read?key=${encodeURIComponent(state?.lastVerseKey ?? '1:1')}`}
             className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
           >
             Lanjutkan ke halaman terakhir <ArrowRight size={14} />
           </a>
+        </div>
+      </Card>
+
+      <Card className="p-4">
+        <div className="text-sm font-semibold">Riwayat harian</div>
+        <div className="mt-3 space-y-3">
+          <div>
+            <div className="text-xs text-zinc-500">7 hari terakhir</div>
+            <div className="mt-2 mini-bar-row">
+              {history7.map((v, i) => (
+                <div key={i} className="mini-bar">
+                  <div className="mini-bar-fill" style={{ height: `${Math.min(100, v * 12)}%` }} />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="text-xs text-zinc-500">30 hari terakhir</div>
+            <div className="mt-2 mini-bar-row">
+              {history30.map((v, i) => (
+                <div key={i} className="mini-bar">
+                  <div className="mini-bar-fill" style={{ height: `${Math.min(100, v * 6)}%` }} />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </Card>
 

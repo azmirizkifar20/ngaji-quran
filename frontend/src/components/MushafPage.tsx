@@ -15,15 +15,22 @@ export default function MushafPage({
   pageNumber,
   verses,
   header,
+  onBookmarksChange,
+  onSaveProgress,
+  lastSavedKey,
 }: {
   pageNumber: number;
   verses: Verse[];
   header: { juz?: number; surahName?: string };
+  onBookmarksChange?: () => void;
+  onSaveProgress?: (verseKey: string, pageNumber: number) => void;
+  lastSavedKey?: string;
 }) {
   const outerRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
   const [scale, setScale] = useState(1);
   const [scaledHeight, setScaledHeight] = useState<number | undefined>(undefined);
+  const [bookmarkSet, setBookmarkSet] = useState<Set<string>>(new Set());
 
   // Option A: auto-scale to container width so 15 lines always fit nicely on mobile
   useEffect(() => {
@@ -107,6 +114,28 @@ export default function MushafPage({
     });
   }, [verses]);
 
+  useEffect(() => {
+    const raw = localStorage.getItem('ngaji_bookmarks_v1');
+    const list = raw ? (JSON.parse(raw) as Array<{ key: string }>) : [];
+    setBookmarkSet(new Set(list.map((b) => b.key)));
+  }, [verses]);
+
+  function toggleBookmark(key: string) {
+    const raw = localStorage.getItem('ngaji_bookmarks_v1');
+    const list = raw ? (JSON.parse(raw) as Array<{ key: string; note: string; createdAt: string }>) : [];
+    const exists = list.find((b) => b.key === key);
+    let next = list;
+    if (exists) {
+      next = list.filter((b) => b.key !== key);
+    } else {
+      const note = window.prompt('Catatan singkat (opsional):', '') || '';
+      next = [{ key, note, createdAt: new Date().toISOString() }, ...list];
+    }
+    localStorage.setItem('ngaji_bookmarks_v1', JSON.stringify(next));
+    setBookmarkSet(new Set(next.map((b) => b.key)));
+    onBookmarksChange?.();
+  }
+
   return (
     <div ref={outerRef} className="w-full">
       <div className="mb-3 flex items-center justify-between text-xs text-zinc-600">
@@ -127,12 +156,36 @@ export default function MushafPage({
               <div className="arabic leading-relaxed px-0 sm:px-8">
                 {fallbackVerses.map((v) => (
                   <div key={v.key} className="verse-block">
-                    <span className="verse-text">
+                    <div className="verse-text">
                       {v.text}{' '}
                       <span className="ayah-paren" aria-label={`Ayah ${v.ayah}`}>
                         {v.ayahAr}
                       </span>
-                    </span>
+                      <button
+                        type="button"
+                        className={`bookmark-btn ${bookmarkSet.has(v.key) ? 'is-active' : ''}`}
+                        aria-label={bookmarkSet.has(v.key) ? 'Hapus bookmark' : 'Simpan bookmark'}
+                        onClick={() => toggleBookmark(v.key)}
+                      >
+                        {bookmarkSet.has(v.key) ? (
+                          <i className="fa-solid fa-star" aria-hidden="true" />
+                        ) : (
+                          <i className="fa-regular fa-star" aria-hidden="true" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className={`save-progress-btn ${lastSavedKey === v.key ? 'is-active' : ''}`}
+                        aria-label="Simpan progress terakhir"
+                        onClick={() => onSaveProgress?.(v.key, pageNumber)}
+                      >
+                        {lastSavedKey === v.key ? (
+                          <i className="fa-solid fa-bookmark" aria-hidden="true" />
+                        ) : (
+                          <i className="fa-regular fa-bookmark" aria-hidden="true" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

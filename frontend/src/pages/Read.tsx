@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { useAppStore } from '../store/useAppStore';
@@ -6,6 +6,7 @@ import { api, Verse } from '../lib/api';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MushafPage from '../components/MushafPage';
+import { useSearchParams } from 'react-router-dom';
 
 function parseVerseKey(key: string) {
   const [c, v] = key.split(':').map(Number);
@@ -14,10 +15,13 @@ function parseVerseKey(key: string) {
 
 export default function Read() {
   const { chapters, state, bootstrap, updateProgress } = useAppStore();
+  const [searchParams] = useSearchParams();
 
   const [pageNumber, setPageNumber] = useState<number>(state?.lastPageNumber ?? 1);
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const lastLoadedRef = useRef<number | null>(null);
+  const [bookmarks, setBookmarks] = useState<Array<{ key: string; note: string; createdAt: string }>>([]);
 
   // jump controls (surah+ayah -> page)
   const initial = parseVerseKey(state?.lastVerseKey ?? '1:1');
@@ -25,9 +29,38 @@ export default function Read() {
   const [verse, setVerse] = useState<number>(initial.verse);
   const [open, setOpen] = useState<boolean>(false);
   const [jumpError, setJumpError] = useState<string | null>(null);
+  const [saveToast, setSaveToast] = useState<string | null>(null);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
-  useEffect(() => { if (state?.lastPageNumber) setPageNumber(state.lastPageNumber); }, [state?.lastPageNumber]);
+  const didInitRef = useRef(false);
+  useEffect(() => {
+    if (didInitRef.current) return;
+    if (state?.lastPageNumber) {
+      setPageNumber(state.lastPageNumber);
+      didInitRef.current = true;
+    }
+  }, [state?.lastPageNumber]);
+  useEffect(() => { loadBookmarks(); }, []);
+
+  useEffect(() => {
+    const key = searchParams.get('key');
+    if (!key) return;
+    const [c, v] = key.split(':').map(Number);
+    if (!c || !v) return;
+    setChapter(c);
+    setVerse(v);
+    setLoading(true);
+    api.verse(key)
+      .then((res) => setPageNumber(res.verse.page_number))
+      .finally(() => setLoading(false));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const pick = searchParams.get('pick');
+    const key = searchParams.get('key');
+    if (key) return;
+    if (pick === '1') setOpen(true);
+  }, [searchParams]);
 
   const currentChapter = useMemo(() => chapters.find(c => c.id === chapter), [chapters, chapter]);
   const maxAyah = currentChapter?.verses_count ?? 0;
@@ -42,13 +75,33 @@ export default function Read() {
   }, [verses, chapters]);
 
   async function loadPage(p: number) {
+    if (lastLoadedRef.current === p && verses.length > 0) return;
+    lastLoadedRef.current = p;
     setLoading(true);
     try {
       const res = await api.byPage(p);
       setVerses(res.verses || []);
 
-      const lastKey = res.verses?.length ? res.verses[res.verses.length - 1].verse_key : `${chapter}:${verse}`;
-      await updateProgress(lastKey, p);
+      // Store page metadata for stats (juz & surah id)
+      const first = res.verses?.[0];
+      if (first?.juz_number && first?.verse_key) {
+        const surahId = Number(first.verse_key.split(':')[0]);
+        const key = 'ngaji_page_meta_v1';
+        const raw = localStorage.getItem(key);
+        const map = raw ? (JSON.parse(raw) as Record<string, { juz: number; surah: number }>) : {};
+        map[String(p)] = { juz: first.juz_number, surah: surahId };
+        localStorage.setItem(key, JSON.stringify(map));
+      }
+
+      // Store daily history (unique pages read per day)
+      const today = new Date().toISOString().slice(0, 10);
+      const hKey = 'ngaji_history_v1';
+      const hRaw = localStorage.getItem(hKey);
+      const history = hRaw ? (JSON.parse(hRaw) as Record<string, number[]>) : {};
+      const list = new Set<number>(history[today] || []);
+      list.add(p);
+      history[today] = Array.from(list.values()).sort((a, b) => a - b);
+      localStorage.setItem(hKey, JSON.stringify(history));
     } finally {
       setLoading(false);
     }
@@ -73,6 +126,27 @@ export default function Read() {
     } finally {
       setLoading(false);
       setOpen(false);
+    }
+  }
+
+  function loadBookmarks() {
+    const raw = localStorage.getItem('ngaji_bookmarks_v1');
+    const list = raw ? (JSON.parse(raw) as Array<{ key: string; note: string; createdAt: string }>) : [];
+    setBookmarks(list);
+  }
+
+  async function jumpToKey(key: string) {
+    const [c, v] = key.split(':').map(Number);
+    if (!c || !v) return;
+    setChapter(c);
+    setVerse(v);
+    setLoading(true);
+    try {
+      const res = await api.verse(key);
+      setPageNumber(res.verse.page_number);
+      setOpen(false);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -154,7 +228,19 @@ export default function Read() {
             </div>
           </Card>
         ) : (
-          <MushafPage pageNumber={pageNumber} verses={verses} header={header} />
+          <MushafPage
+            pageNumber={pageNumber}
+            verses={verses}
+            header={header}
+            onBookmarksChange={loadBookmarks}
+            onSaveProgress={(verseKey, page) => {
+              updateProgress(verseKey, page).then(() => {
+                setSaveToast('Progress disimpan');
+                setTimeout(() => setSaveToast(null), 1800);
+              });
+            }}
+            lastSavedKey={state?.lastVerseKey}
+          />
         )}
       </motion.div>
 
@@ -169,8 +255,69 @@ export default function Read() {
         </div>
       </Card>
 
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold">Bookmarks</div>
+          <button
+            onClick={loadBookmarks}
+            className="text-xs font-medium text-zinc-600 hover:text-zinc-900"
+          >
+            Refresh
+          </button>
+        </div>
+
+        {bookmarks.length === 0 ? (
+          <div className="mt-3 text-sm text-zinc-600">Belum ada bookmark.</div>
+        ) : (
+          <div className="mt-3 space-y-2">
+            {bookmarks.map((b) => (
+              <div
+                key={b.key}
+                className="flex items-center justify-between rounded-xl2 border border-zinc-100 px-3 py-2"
+              >
+                <div>
+                  <div className="text-sm font-semibold">{b.key}</div>
+                  {b.note ? <div className="text-xs text-zinc-500">{b.note}</div> : null}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => jumpToKey(b.key)}
+                    className="rounded-full bg-zinc-900 px-3 py-1 text-xs font-semibold text-white"
+                  >
+                    Go
+                  </button>
+                  <button
+                    onClick={() => {
+                      const raw = localStorage.getItem('ngaji_bookmarks_v1');
+                      const list = raw ? (JSON.parse(raw) as Array<{ key: string; note: string; createdAt: string }>) : [];
+                      const next = list.filter(x => x.key !== b.key);
+                      localStorage.setItem('ngaji_bookmarks_v1', JSON.stringify(next));
+                      setBookmarks(next);
+                    }}
+                    className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {saveToast && (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg">
+          {saveToast}
+        </div>
+      )}
     </div>
   );
 }
+
+
+
+
+
+
 
 
