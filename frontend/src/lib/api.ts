@@ -44,16 +44,25 @@ export type UserState = {
   xp: number;
 };
 
+export type LeaderboardRow = {
+  id: string;
+  name: string | null;
+  streak: number;
+  xp: number;
+  lastPageNumber: number;
+  updatedAt: string;
+};
+
 function getUserId(): string {
   const key = 'ngaji_user_id';
-  let v = localStorage.getItem(key);
-  if (!v) {
-    v = (crypto as any).randomUUID
-      ? (crypto as any).randomUUID()
-      : String(Date.now()) + Math.random().toString(16).slice(2);
-    localStorage.setItem(key, v);
-  }
-  return v;
+  const v = localStorage.getItem(key);
+  if (v) return v;
+
+  const newId = (crypto as any).randomUUID
+    ? (crypto as any).randomUUID()
+    : String(Date.now()) + Math.random().toString(16).slice(2);
+  localStorage.setItem(key, newId);
+  return newId;
 }
 
 async function j<T>(path: string, init?: RequestInit): Promise<T> {
@@ -87,4 +96,6 @@ export const api = {
   setGoals: (data: { targetDays: number; startDate?: string }) =>
     j<{ state: UserState }>(`/api/user/goals`, { method: 'POST', body: JSON.stringify(data) }),
   checkIn: () => j<{ state: UserState }>(`/api/user/checkin`, { method: 'POST', body: '{}' }),
+
+  leaderboard: (limit = 20) => j<{ leaderboard: LeaderboardRow[] }>(`/api/leaderboard?limit=${limit}`),
 };
