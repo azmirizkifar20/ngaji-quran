@@ -1,20 +1,51 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import ProgressRing from '../components/ProgressRing';
 import { useAppStore } from '../store/useAppStore';
 import { pagesLeft, pagesPerDay, prettyDate } from '../lib/format';
-import { Flame, Sparkles } from 'lucide-react';
+import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function Home() {
   const { bootstrap, state, loading, error, checkIn } = useAppStore();
+  const [dailyDone, setDailyDone] = useState(0);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
+  useEffect(() => {
+    if (!state?.lastPageNumber) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const keyDate = 'ngaji_daily_date';
+    const keyStart = 'ngaji_daily_start_page';
+    const keyDone = 'ngaji_daily_done';
+
+    const storedDate = localStorage.getItem(keyDate);
+    let startPage = Number(localStorage.getItem(keyStart) || state.lastPageNumber);
+    let done = Number(localStorage.getItem(keyDone) || 0);
+
+    if (storedDate !== today) {
+      startPage = state.lastPageNumber;
+      done = 0;
+      localStorage.setItem(keyDate, today);
+      localStorage.setItem(keyStart, String(startPage));
+      localStorage.setItem(keyDone, String(done));
+    }
+
+    const diff = Math.max(0, state.lastPageNumber - startPage);
+    if (diff !== done) {
+      done = diff;
+      localStorage.setItem(keyDone, String(done));
+    }
+
+    setDailyDone(done);
+  }, [state?.lastPageNumber]);
 
   const total = state?.totalPages ?? 604;
   const current = state?.lastPageNumber ?? 1;
   const left = pagesLeft(total, current);
   const perDay = pagesPerDay(total, current, state?.targetDays ?? 30);
+  const remainingToday = Math.max(0, perDay - dailyDone);
+  const dailyPct = perDay > 0 ? Math.min(100, Math.round((dailyDone / perDay) * 100)) : 0;
   const pct = (current / total) * 100;
 
   return (
@@ -61,12 +92,42 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-4 text-xs text-zinc-500">
+        <div className="mt-4 rounded-xl2 border border-zinc-100 bg-white p-3 text-xs text-zinc-600">
+          <div className="flex items-center justify-between">
+            <div>
+              Target harian: <span className="font-medium text-zinc-900">{perDay} halaman</span> •
+              Hari ini: <span className="font-medium text-zinc-900">{dailyDone} halaman</span> •
+              Sisa: <span className="font-medium text-zinc-900">{remainingToday} halaman</span>
+            </div>
+            <div className="ml-3 rounded-full bg-zinc-900 px-2 py-0.5 text-[10px] font-semibold text-white">
+              {dailyPct}%
+            </div>
+          </div>
+          <div className="mt-2 h-2 w-full rounded-full bg-zinc-100">
+            <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-lime-400" style={{ width: `${dailyPct}%` }} />
+          </div>
+          {dailyDone === 0 && (
+            <div className="mt-2 text-[11px] text-zinc-500">
+              Mulai baca sekarang untuk mengejar target hari ini.
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 text-xs text-zinc-500">
           Mulai: {state?.startDate ? prettyDate(state.startDate) : '-'} • Target: {state?.targetDays ?? 30} hari
         </div>
 
         <div className="mt-4">
-          <Button variant="secondary" onClick={() => checkIn()} disabled={loading}>
+          <Button
+            variant="secondary"
+            onClick={() =>
+              checkIn().then(() => {
+                setToast('Check-in berhasil');
+                setTimeout(() => setToast(null), 1800);
+              })
+            }
+            disabled={loading}
+          >
             Check-in hari ini
           </Button>
         </div>
@@ -82,7 +143,23 @@ export default function Home() {
             <Button>Mulai baca</Button>
           </a>
         </div>
+        <div className="mt-3">
+          <a
+            href="/read"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+          >
+            Lanjutkan ke halaman terakhir <ArrowRight size={14} />
+          </a>
+        </div>
       </Card>
+
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg">
+          <span className="inline-flex items-center gap-2">
+            <CheckCircle2 size={14} /> {toast}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
