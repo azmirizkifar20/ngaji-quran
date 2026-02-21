@@ -26,7 +26,7 @@ export default function Read() {
   // jump controls (surah+ayah -> page)
   const initial = parseVerseKey(state?.lastVerseKey ?? '1:1');
   const [chapter, setChapter] = useState<number>(initial.chapter);
-  const [verse, setVerse] = useState<number>(initial.verse);
+  const [verseInput, setVerseInput] = useState<string>(String(initial.verse));
   const [open, setOpen] = useState<boolean>(false);
   const [jumpError, setJumpError] = useState<string | null>(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export default function Read() {
     const [c, v] = key.split(':').map(Number);
     if (!c || !v) return;
     setChapter(c);
-    setVerse(v);
+    setVerseInput(String(v));
     setLoading(true);
     api.verse(key)
       .then((res) => setPageNumber(res.verse.page_number))
@@ -74,6 +74,7 @@ export default function Read() {
     });
   }, [chapters, query]);
   const maxAyah = currentChapter?.verses_count ?? 0;
+  const verseNum = Math.max(1, Number(verseInput || 1));
 
   const header = useMemo(() => {
     const first = verses[0];
@@ -102,16 +103,6 @@ export default function Read() {
         map[String(p)] = { juz: first.juz_number, surah: surahId };
         localStorage.setItem(key, JSON.stringify(map));
       }
-
-      // Store daily history (unique pages read per day)
-      const today = new Date().toISOString().slice(0, 10);
-      const hKey = 'ngaji_history_v1';
-      const hRaw = localStorage.getItem(hKey);
-      const history = hRaw ? (JSON.parse(hRaw) as Record<string, number[]>) : {};
-      const list = new Set<number>(history[today] || []);
-      list.add(p);
-      history[today] = Array.from(list.values()).sort((a, b) => a - b);
-      localStorage.setItem(hKey, JSON.stringify(history));
     } finally {
       setLoading(false);
     }
@@ -123,12 +114,12 @@ export default function Read() {
   }, [pageNumber]);
 
   async function jumpToSurahAyah() {
-    if (maxAyah > 0 && verse > maxAyah) {
+    if (maxAyah > 0 && verseNum > maxAyah) {
       setJumpError(`Ayat tidak ada di surat ${currentChapter?.name_simple ?? '#' + chapter}. Maksimal ayat ${maxAyah}.`);
       return;
     }
     setJumpError(null);
-    const key = `${chapter}:${verse}`;
+    const key = `:`;
     setLoading(true);
     try {
       const res = await api.verse(key);
@@ -145,11 +136,22 @@ export default function Read() {
     setBookmarks(list);
   }
 
+  function recordSavedPage(page: number) {
+    const today = new Date().toISOString().slice(0, 10);
+    const hKey = 'ngaji_saved_pages_v1';
+    const hRaw = localStorage.getItem(hKey);
+    const history = hRaw ? (JSON.parse(hRaw) as Record<string, number[]>) : {};
+    const list = new Set<number>(history[today] || []);
+    list.add(page);
+    history[today] = Array.from(list.values()).sort((a, b) => a - b);
+    localStorage.setItem(hKey, JSON.stringify(history));
+  }
+
   async function jumpToKey(key: string) {
     const [c, v] = key.split(':').map(Number);
     if (!c || !v) return;
     setChapter(c);
-    setVerse(v);
+    setVerseInput(String(v));
     setLoading(true);
     try {
       const res = await api.verse(key);
@@ -175,7 +177,7 @@ export default function Read() {
           <div>
             <div className="text-xs text-zinc-500">Jump to (Surah • Ayat)</div>
             <div className="text-sm font-semibold">
-              {currentChapter ? `${currentChapter.id}. ${currentChapter.name_simple}` : `#${chapter}`} • {verse}
+              {currentChapter ? `${currentChapter.id}. ${currentChapter.name_simple}` : `#${chapter}`} • {verseNum}
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-zinc-600">
@@ -212,8 +214,8 @@ export default function Read() {
 
             <div className="flex gap-2">
               <input
-                value={verse}
-                onChange={(e) => { setVerse(Math.max(1, Number(e.target.value || 1))); setJumpError(null); }}
+                value={verseInput}
+                onChange={(e) => { setVerseInput(e.target.value.replace(/[^\\d]/g, '')); setJumpError(null); }}
                 type="number"
                 min={1}
                 className="w-full rounded-xl2 border border-zinc-200 px-4 py-3 text-sm outline-none focus:border-zinc-400"
@@ -255,6 +257,7 @@ export default function Read() {
             onBookmarksChange={loadBookmarks}
             onSaveProgress={(verseKey, page) => {
               updateProgress(verseKey, page).then(() => {
+                recordSavedPage(page);
                 setSaveToast('Progress disimpan');
                 setTimeout(() => setSaveToast(null), 1800);
               });
@@ -333,6 +336,17 @@ export default function Read() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

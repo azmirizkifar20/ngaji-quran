@@ -3,12 +3,13 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import ProgressRing from '../components/ProgressRing';
 import { useAppStore } from '../store/useAppStore';
-import { pagesLeft, pagesPerDay, prettyDate } from '../lib/format';
+import { pagesLeft, pagesPerDay, remainingDaysFromStart, prettyDate } from '../lib/format';
 import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 
 export default function Home() {
   const { bootstrap, state, loading, error, checkIn, chapters } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
+  const [todayStr, setTodayStr] = useState<string>(new Date().toISOString().slice(0, 10));
   const [history7, setHistory7] = useState<number[]>([]);
   const [history30, setHistory30] = useState<number[]>([]);
   const [surahStat, setSurahStat] = useState<{ name: string; current: number; total: number } | null>(null);
@@ -17,14 +18,26 @@ export default function Home() {
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
   useEffect(() => {
+    const updateToday = () => setTodayStr(new Date().toISOString().slice(0, 10));
+    const id = setInterval(updateToday, 60 * 1000);
+    const onFocus = () => updateToday();
+    document.addEventListener('visibilitychange', onFocus);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onFocus);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, []);
+  useEffect(() => {
     if (!state?.lastPageNumber) return;
-
     const today = new Date();
-    const todayStr = today.toISOString().slice(0, 10);
+    const todayKey = todayStr;
 
-    const raw = localStorage.getItem('ngaji_history_v1');
+    const raw = localStorage.getItem('ngaji_saved_pages_v1');
     const history = raw ? (JSON.parse(raw) as Record<string, number[]>) : {};
-    const todayCount = (history[todayStr] || []).length;
+    const todayList = history[todayKey] || [];
+    const todayCount = todayList.length ? (Math.max(...todayList) - Math.min(...todayList) + 1) : 0;
     setDailyDone(todayCount);
 
     function getCounts(days: number) {
@@ -33,7 +46,8 @@ export default function Home() {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = d.toISOString().slice(0, 10);
-        out.push((history[key] || []).length);
+        const list = history[key] || [];
+        out.push(list.length ? (Math.max(...list) - Math.min(...list) + 1) : 0);
       }
       return out;
     }
@@ -67,12 +81,16 @@ export default function Home() {
     } else {
       setJuzStat(null);
     }
-  }, [state?.lastPageNumber, state?.lastVerseKey, chapters, state?.totalPages]);
+  }, [state?.lastPageNumber, state?.lastVerseKey, chapters, state?.totalPages, todayStr]);
 
   const total = state?.totalPages ?? 604;
   const current = state?.lastPageNumber ?? 1;
   const left = pagesLeft(total, current);
-  const perDay = pagesPerDay(total, current, state?.targetDays ?? 30);
+  const remainingDays = useMemo(
+    () => remainingDaysFromStart(state?.startDate ?? new Date().toISOString(), state?.targetDays ?? 30),
+    [state?.startDate, state?.targetDays]
+  );
+  const perDay = pagesPerDay(total, current, remainingDays);
   const remainingToday = Math.max(0, perDay - dailyDone);
   const dailyPct = perDay > 0 ? Math.min(100, Math.round((dailyDone / perDay) * 100)) : 0;
   const pct = (current / total) * 100;
