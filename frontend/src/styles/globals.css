@@ -46,7 +46,7 @@ body {
 .ayah-sep{
   display: inline-block;
   font-family: "Noto Naskh Arabic", "Amiri Quran", "Uthmanic", serif;
-  font-size: 0.95em;
+  font-size: 0.85em;
   opacity: 0.9;
   margin: 0 0.08em;
 }

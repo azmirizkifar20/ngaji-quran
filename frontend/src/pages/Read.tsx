@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { useAppStore } from '../store/useAppStore';
@@ -74,16 +74,7 @@ export default function Read() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-xl font-semibold tracking-tight">True Mushaf Mode</div>
-          <div className="text-sm text-zinc-500">Layout 15 baris • auto-scale untuk mobile</div>
-        </div>
-        <div className="rounded-xl2 border border-zinc-100 bg-white px-3 py-2 shadow-soft text-right">
-          <div className="text-xs text-zinc-500">Page</div>
-          <div className="text-sm font-semibold">{pageNumber}</div>
-        </div>
-      </div>
+      <div />
 
       <Card className="p-4">
         <button
@@ -157,13 +148,8 @@ export default function Read() {
         </div>
       </Card>
 
-      <Card className="p-4">
-        <div className="text-sm font-semibold">Catatan font mushaf</div>
-        <div className="mt-1 text-sm text-zinc-600">
-          Untuk hasil paling mirip mushaf, wajib pakai font glyph (contoh: <span className="font-medium">UthmanicHafs.woff2</span>).
-          Kalau font belum ada, beberapa glyph bisa tampil kurang pas.
-        </div>
-      </Card>
     </div>
   );
 }
+
+

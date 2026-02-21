@@ -114,7 +114,7 @@ export default function MushafPage({
         <div className="font-semibold">{header.surahName ?? ''}</div>
       </div>
 
-      <div className="rounded-xl2 border border-zinc-100 bg-white p-4 shadow-soft">
+      <div className="rounded-xl2 border border-zinc-100 bg-white py-2 px-0 sm:p-4 shadow-soft">
         <div className="relative" style={{ height: scaledHeight }}>
           <div
             className="absolute left-0 right-0 top-0"
@@ -138,7 +138,7 @@ export default function MushafPage({
                 </div>
               ) : (
                 <div>
-                  <div className="arabic leading-relaxed px-8">
+                  <div className="arabic leading-relaxed px-0 sm:px-8">
                     {fallbackVerses.map((v) => (
                       <span key={v.key} className="inline">
                         {v.text}{' '}
