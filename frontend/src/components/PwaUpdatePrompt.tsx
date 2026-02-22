@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 export default function PwaUpdatePrompt() {
@@ -6,6 +7,15 @@ export default function PwaUpdatePrompt() {
     updateServiceWorker,
   } = useRegisterSW();
 
+  const autoUpdateOnRefresh = true;
+
+  useEffect(() => {
+    if (autoUpdateOnRefresh && needRefresh[0]) {
+      updateServiceWorker(true);
+    }
+  }, [autoUpdateOnRefresh, needRefresh, updateServiceWorker]);
+
+  if (autoUpdateOnRefresh) return null;
   if (!needRefresh[0]) return null;
 
   return (
