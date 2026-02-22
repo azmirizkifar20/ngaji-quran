@@ -84,7 +84,7 @@ export default function Leaderboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-semibold">{row.streak} 🔥</div>
-                  <div className="text-xs text-zinc-500">{row.xp} XP</div>
+                  <div className="text-xs text-zinc-500">Streak: {row.streak}</div>
                 </div>
               </div>
             );

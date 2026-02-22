@@ -13,7 +13,6 @@ type AppState = {
   setName: (name: string) => Promise<void>;
   updateProgress: (verseKey: string, pageNumber: number) => Promise<void>;
   updateGoals: (targetDays: number) => Promise<void>;
-  checkIn: () => Promise<void>;
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -54,8 +53,4 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ state: res.state });
   },
 
-  checkIn: async () => {
-    const res = await api.checkIn();
-    set({ state: res.state });
-  },
 }));

@@ -27,7 +27,30 @@ export const userService = {
   async setProgress(db: Db, userId: string, data: { lastVerseKey: string; lastPageNumber: number }) {
     await this.ensure(db, userId);
     const now = new Date().toISOString();
-    return userRepository.update(db, userId, { ...data, updatedAt: now });
+    const state = await userRepository.get(db, userId);
+    const today = toISODateUTC(new Date());
+    let streak = state.streak;
+    if (!state.lastCheckInDate) {
+      streak = 1;
+    } else if (state.lastCheckInDate === today) {
+      // already counted today
+    } else {
+      const lastDate = new Date(state.lastCheckInDate + 'T00:00:00Z');
+      const todayDate = new Date(today + 'T00:00:00Z');
+      const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (24 * 3600 * 1000));
+      if (diffDays === 1) {
+        streak += 1;
+      } else {
+        streak = 1;
+      }
+    }
+
+    return userRepository.update(db, userId, {
+      ...data,
+      streak,
+      lastCheckInDate: today,
+      updatedAt: now,
+    });
   },
 
   async setGoals(db: Db, userId: string, data: { targetDays: number; startDate?: string }) {
@@ -37,37 +60,6 @@ export const userService = {
     return userRepository.update(db, userId, { targetDays: data.targetDays, startDate, updatedAt: now });
   },
 
-  async checkIn(db: Db, userId: string) {
-    await this.ensure(db, userId);
-    const state = await userRepository.get(db, userId);
-    const today = toISODateUTC(new Date());
-    const last = state.lastCheckInDate;
-
-    let streak = state.streak;
-    let xp = state.xp;
-
-    if (!last) {
-      streak = 1;
-      xp += 10;
-    } else if (last === today) {
-      // already checked in
-    } else {
-      const lastDate = new Date(last + 'T00:00:00Z');
-      const todayDate = new Date(today + 'T00:00:00Z');
-      const diffDays = Math.floor((todayDate.getTime() - lastDate.getTime()) / (24 * 3600 * 1000));
-
-      if (diffDays === 1) {
-        streak += 1;
-        xp += 10 + Math.min(50, streak);
-      } else {
-        streak = 1;
-        xp += 10;
-      }
-    }
-
-    const now = new Date().toISOString();
-    return userRepository.update(db, userId, { streak, xp, lastCheckInDate: today, updatedAt: now });
-  },
 
   async leaderboard(db: Db, limit = 20) {
     return userRepository.leaderboard(db, limit);
@@ -83,7 +75,6 @@ export const userService = {
       startDate: now,
       streak: 0,
       lastCheckInDate: null,
-      xp: 0,
       updatedAt: now,
     });
   },

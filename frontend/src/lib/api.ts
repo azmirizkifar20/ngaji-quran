@@ -41,14 +41,12 @@ export type UserState = {
   startDate: string;
   streak: number;
   lastCheckInDate?: string | null;
-  xp: number;
 };
 
 export type LeaderboardRow = {
   id: string;
   name: string | null;
   streak: number;
-  xp: number;
   lastPageNumber: number;
   updatedAt: string;
 };
@@ -95,7 +93,6 @@ export const api = {
     j<{ state: UserState }>(`/api/user/progress`, { method: 'POST', body: JSON.stringify(data) }),
   setGoals: (data: { targetDays: number; startDate?: string }) =>
     j<{ state: UserState }>(`/api/user/goals`, { method: 'POST', body: JSON.stringify(data) }),
-  checkIn: () => j<{ state: UserState }>(`/api/user/checkin`, { method: 'POST', body: '{}' }),
   reset: () => j<{ state: UserState }>(`/api/user/reset`, { method: 'POST', body: '{}' }),
 
   leaderboard: (limit = 20) => j<{ leaderboard: LeaderboardRow[] }>(`/api/leaderboard?limit=${limit}`),

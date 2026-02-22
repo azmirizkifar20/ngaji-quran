@@ -10,7 +10,6 @@ export type UserStateRow = {
   startDate: string;          // ISO
   streak: number;
   lastCheckInDate: string | null; // YYYY-MM-DD (UTC) or null
-  xp: number;
   updatedAt: string;          // ISO
 };
 
@@ -38,7 +37,6 @@ export const userRepository = {
       startDate: now,
       streak: 0,
       lastCheckInDate: null,
-      xp: 0,
       updatedAt: now,
     });
   },
@@ -50,8 +48,8 @@ export const userRepository = {
 
   async leaderboard(db: Db, limit = 20) {
     const rows = await db<UserStateRow>(TABLE)
-      .select(['id','name','streak','xp','lastPageNumber','updatedAt'])
-      .orderBy([{ column: 'streak', order: 'desc' }, { column: 'xp', order: 'desc' }, { column: 'updatedAt', order: 'asc' }])
+      .select(['id','name','streak','lastPageNumber','updatedAt'])
+      .orderBy([{ column: 'streak', order: 'desc' }, { column: 'updatedAt', order: 'asc' }])
       .limit(limit);
 
     return rows;

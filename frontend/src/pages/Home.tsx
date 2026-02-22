@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import ProgressRing from '../components/ProgressRing';
@@ -8,7 +8,7 @@ import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function Home() {
-  const { bootstrap, state, loading, error, checkIn, chapters, updateProgress } = useAppStore();
+  const { bootstrap, state, loading, error, chapters, updateProgress } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
   const [todayStr, setTodayStr] = useState<string>(new Date().toISOString().slice(0, 10));
   const [history7, setHistory7] = useState<number[]>([]);
@@ -112,10 +112,7 @@ export default function Home() {
           <div className="text-lg sm:text-xl font-semibold tracking-tight">{state?.name ? `Ngaji Quran • ${state.name}` : 'Ngaji Quran'}</div>
           <div className="text-xs sm:text-sm text-zinc-500">Premium light • fokus & konsisten</div>
         </div>
-        <div className="rounded-xl2 border border-zinc-100 bg-white px-3 py-2 shadow-soft">
-          <div className="text-xs text-zinc-500">XP</div>
-          <div className="text-sm sm:text-base font-semibold">{state?.xp ?? 0}</div>
-        </div>
+        <div />
       </div>
 
       {error && (
@@ -185,34 +182,22 @@ export default function Home() {
             <div className="rounded-xl2 bg-zinc-50 p-3">
               <div className="text-xs text-zinc-500">Juz saat ini</div>
               <div className="mt-1 text-sm font-semibold">
-                {juzStat ? `Juz ${juzStat.juz} • ${juzStat.index}/${juzStat.total}` : '-'}
+                {juzStat ? `Juz ${juzStat.juz}` : '-'}
               </div>
             </div>
           </div>
         )}
 
         <div className="mt-4">
-          <Button
-            variant="secondary"
-            onClick={() =>
-              checkIn().then(() => {
-                setToast('Check-in berhasil');
-                setTimeout(() => setToast(null), 1800);
-              })
-            }
-            disabled={loading}
-          >
-            Check-in hari ini
-          </Button>
           <button
             type="button"
-            className="mt-3 w-full text-xs font-medium text-zinc-500 hover:text-zinc-900"
+            className="w-full rounded-xl2 px-4 py-3 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 hover:bg-red-100"
             onClick={async () => {
               const Swal = (window as any).Swal;
               const result = Swal
                 ? await Swal.fire({
                     title: 'Reset progress?',
-                    text: 'Semua progress, streak, dan XP akan direset. Bookmark tetap.',
+                    text: 'Progress ngaji kamu akan direset kecuali bookmark ayat.',
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Reset',
@@ -235,7 +220,7 @@ export default function Home() {
               setTimeout(() => setToast(null), 1800);
             }}
           >
-            Reset data (kecuali bookmark)
+            Reset data
           </button>
         </div>
       </Card>
@@ -296,3 +281,6 @@ export default function Home() {
     </div>
   );
 }
+
+
+

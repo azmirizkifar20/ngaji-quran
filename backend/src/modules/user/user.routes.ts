@@ -10,7 +10,6 @@ export function makeUserRouter(db: Db) {
   r.post('/profile', c.setProfile);
   r.post('/progress', c.setProgress);
   r.post('/goals', c.setGoals);
-  r.post('/checkin', c.checkIn);
   r.post('/reset', c.resetState);
 
   return r;

@@ -14,7 +14,6 @@ exports.up = async function up(knex) {
 
     t.integer('streak').notNullable().defaultTo(0);
     t.string('lastCheckInDate').nullable(); // YYYY-MM-DD (UTC)
-    t.integer('xp').notNullable().defaultTo(0);
 
     t.string('updatedAt').notNullable(); // ISO string
   });
