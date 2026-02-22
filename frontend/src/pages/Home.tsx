@@ -24,6 +24,11 @@ export default function Home() {
     const onFocus = () => updateToday();
     document.addEventListener('visibilitychange', onFocus);
     window.addEventListener('focus', onFocus);
+    // cleanup legacy keys (no longer used)
+    localStorage.removeItem('ngaji_history_v1');
+    localStorage.removeItem('ngaji_daily_date');
+    localStorage.removeItem('ngaji_daily_start_page');
+    localStorage.removeItem('ngaji_daily_done');
     return () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', onFocus);
