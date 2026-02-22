@@ -8,6 +8,8 @@ import { getEnv } from './config/env.js';
 import { quranRouter } from './modules/quran/quran.routes.js';
 import { userIdentity } from './middlewares/user.js';
 import { makeUserRouter } from './modules/user/user.routes.js';
+import { makeAuthRouter } from './modules/auth/auth.routes.js';
+import { makeSyncRouter } from './modules/sync/sync.routes.js';
 import { errorHandler } from './middlewares/error.js';
 
 export function createApp(db: Db) {
@@ -36,8 +38,10 @@ export function createApp(db: Db) {
   // attach lightweight user identity (x-user-id)
   app.use(userIdentity);
 
+  app.use('/api/auth', makeAuthRouter(db));
   app.use('/api/quran', quranRouter);
   app.use('/api/user', makeUserRouter(db));
+  app.use('/api/sync', makeSyncRouter(db));
 
   app.use(errorHandler);
 

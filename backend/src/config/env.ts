@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 const EnvSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
@@ -6,6 +6,7 @@ const EnvSchema = z.object({
   QURAN_COM_BASE_URL: z.string().url().default('https://api.quran.com/api/v4'),
   SQLITE_FILE: z.string().default('./dev.db'),
   CACHE_TTL_SECONDS: z.coerce.number().int().min(10).max(86400).default(3600),
+  JWT_SECRET: z.string().min(16).default('dev-secret-change-me'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -17,12 +18,13 @@ export function getEnv(): Env {
     QURAN_COM_BASE_URL: process.env.QURAN_COM_BASE_URL,
     SQLITE_FILE: process.env.SQLITE_FILE,
     CACHE_TTL_SECONDS: process.env.CACHE_TTL_SECONDS,
+    JWT_SECRET: process.env.JWT_SECRET,
   });
 
   if (!parsed.success) {
     // keep the error readable in logs
     // eslint-disable-next-line no-console
-    console.error('âŒ Invalid environment variables:', parsed.error.flatten());
+    console.error('❌ Invalid environment variables:', parsed.error.flatten());
     throw new Error('Invalid environment variables');
   }
 

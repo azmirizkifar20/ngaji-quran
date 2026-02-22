@@ -18,6 +18,7 @@ export default function MushafPage({
   onBookmarksChange,
   onSaveProgress,
   lastSavedKey,
+  syncKey,
 }: {
   pageNumber: number;
   verses: Verse[];
@@ -25,6 +26,7 @@ export default function MushafPage({
   onBookmarksChange?: () => void;
   onSaveProgress?: (verseKey: string, pageNumber: number) => void;
   lastSavedKey?: string;
+  syncKey?: number;
 }) {
   const outerRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
@@ -98,7 +100,7 @@ export default function MushafPage({
     }
 
     return { lines: out, hasGlyphs: any };
-  }, [verses]);
+  }, [verses, syncKey]);
 
   const fallbackVerses = useMemo(() => {
     const toArabicIndic = (n: number) =>

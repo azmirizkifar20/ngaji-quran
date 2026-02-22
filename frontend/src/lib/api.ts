@@ -1,5 +1,30 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
+const TOKEN_KEY = 'ngaji_token';
+const EMAIL_KEY = 'ngaji_email';
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getAuthEmail(): string | null {
+  return localStorage.getItem(EMAIL_KEY);
+}
+
+export function setAuth(token: string, email: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.setItem(EMAIL_KEY, email);
+}
+
+export function clearAuth() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(EMAIL_KEY);
+}
+
+export function hasAuth() {
+  return !!getAuthToken();
+}
+
 export type Chapter = {
   id: number;
   name_arabic: string;
@@ -51,6 +76,14 @@ export type LeaderboardRow = {
   updatedAt: string;
 };
 
+export type Bookmark = { key: string; note: string; createdAt: string };
+
+export type SyncPayload = {
+  bookmarks: Bookmark[];
+  savedPages: Record<string, number[]>;
+  pageMeta: Record<string, { juz: number; surah: number }>;
+};
+
 function getUserId(): string {
   const key = 'ngaji_user_id';
   const v = localStorage.getItem(key);
@@ -65,8 +98,16 @@ function getUserId(): string {
 
 async function j<T>(path: string, init?: RequestInit): Promise<T> {
   const userId = getUserId();
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+    'x-user-id': userId,
+    ...(init?.headers || {}),
+  } as Record<string, string>;
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const r = await fetch(`${API_BASE}${path}`, {
-    headers: { 'content-type': 'application/json', 'x-user-id': userId, ...(init?.headers || {}) },
+    headers,
     ...init,
   });
   if (!r.ok) {
@@ -96,4 +137,19 @@ export const api = {
   reset: () => j<{ state: UserState }>(`/api/user/reset`, { method: 'POST', body: '{}' }),
 
   leaderboard: (limit = 20) => j<{ leaderboard: LeaderboardRow[] }>(`/api/leaderboard?limit=${limit}`),
+
+  register: (data: { email: string; password: string; name?: string }) =>
+    j<{ token: string; user: { id: string; email: string } }>(`/api/auth/register`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  login: (data: { email: string; password: string }) =>
+    j<{ token: string; user: { id: string; email: string } }>(`/api/auth/login`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  syncGet: () => j<{ data: SyncPayload | null; updatedAt: string | null }>(`/api/sync`),
+  syncSet: (data: SyncPayload) =>
+    j<{ updatedAt: string }>(`/api/sync`, { method: 'POST', body: JSON.stringify({ data }) }),
 };

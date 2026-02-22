@@ -5,10 +5,12 @@ import ProgressRing from '../components/ProgressRing';
 import { useAppStore } from '../store/useAppStore';
 import { pagesLeft, pagesPerDay, remainingDaysFromStart, prettyDate } from '../lib/format';
 import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, getAuthEmail } from '../lib/api';
+import { getLocalSyncUpdatedAt, pullSyncOnlyIfAuthed, pushSyncIfAuthed } from '../lib/sync';
+import AuthModal from '../components/AuthModal';
 
 export default function Home() {
-  const { bootstrap, state, loading, error, chapters, updateProgress } = useAppStore();
+  const { bootstrap, state, error, chapters } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
   const [todayStr, setTodayStr] = useState<string>(new Date().toISOString().slice(0, 10));
   const [history7, setHistory7] = useState<number[]>([]);
@@ -16,6 +18,11 @@ export default function Home() {
   const [surahStat, setSurahStat] = useState<{ name: string; current: number; total: number } | null>(null);
   const [juzStat, setJuzStat] = useState<{ juz: number; index: number; total: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authEmail, setAuthEmail] = useState<string | null>(getAuthEmail());
+  const [syncAt, setSyncAt] = useState<string | null>(getLocalSyncUpdatedAt());
+  const [syncing, setSyncing] = useState(false);
+  const [syncTick, setSyncTick] = useState(0);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
   useEffect(() => {
@@ -87,7 +94,7 @@ export default function Home() {
     } else {
       setJuzStat(null);
     }
-  }, [state?.lastPageNumber, state?.lastVerseKey, chapters, state?.totalPages, todayStr]);
+  }, [state?.lastPageNumber, state?.lastVerseKey, chapters, state?.totalPages, todayStr, syncTick]);
 
   const total = state?.totalPages ?? 604;
   const current = state?.lastPageNumber ?? 1;
@@ -117,7 +124,48 @@ export default function Home() {
           <div className="text-lg sm:text-xl font-semibold tracking-tight">{state?.name ? `Ngaji Quran • ${state.name}` : 'Ngaji Quran'}</div>
           <div className="text-xs sm:text-sm text-zinc-500">Premium light • fokus & konsisten</div>
         </div>
-        <div />
+        <div className="text-right">
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
+              onClick={async () => {
+                if (!authEmail) {
+                  setAuthOpen(true);
+                  return;
+                }
+                setSyncing(true);
+                await pullSyncOnlyIfAuthed();
+                await bootstrap();
+                setSyncAt(getLocalSyncUpdatedAt());
+                setSyncing(false);
+                setSyncTick((v) => v + 1);
+                window.dispatchEvent(new CustomEvent('ngaji-sync'));
+                setToast('Sync selesai');
+                setTimeout(() => setToast(null), 1800);
+              }}
+              disabled={syncing}
+              aria-label="Sync"
+              title="Sync"
+            >
+              <i className={`fa-solid fa-rotate ${syncing ? 'fa-spin' : ''}`} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
+              onClick={() => setAuthOpen(true)}
+              aria-label="Profile"
+              title="Profile"
+            >
+              <i className="fa-regular fa-user" aria-hidden="true" />
+            </button>
+          </div>
+          {syncAt && (
+            <div className="mt-1 text-[10px] text-zinc-500">
+              Last sync: {new Date(syncAt).toLocaleString('id-ID')}
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -221,6 +269,8 @@ export default function Home() {
 
               await api.reset();
               await bootstrap();
+              await pushSyncIfAuthed();
+              setSyncAt(getLocalSyncUpdatedAt());
               setToast('Progress direset');
               setTimeout(() => setToast(null), 1800);
             }}
@@ -283,6 +333,25 @@ export default function Home() {
           </span>
         </div>
       )}
+
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthed={(email) => {
+          setAuthEmail(email);
+          setAuthOpen(false);
+          bootstrap();
+          setSyncAt(getLocalSyncUpdatedAt());
+          setToast('Sinkronisasi aktif');
+          setTimeout(() => setToast(null), 1800);
+        }}
+        onLoggedOut={() => {
+          setAuthEmail(null);
+          setAuthOpen(false);
+          bootstrap();
+          setSyncAt(getLocalSyncUpdatedAt());
+        }}
+      />
     </div>
   );
 }

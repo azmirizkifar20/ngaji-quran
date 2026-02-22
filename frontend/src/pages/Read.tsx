@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import { useAppStore } from '../store/useAppStore';
 import { api, Verse } from '../lib/api';
+import { pushSyncIfAuthed } from '../lib/sync';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MushafPage from '../components/MushafPage';
@@ -31,6 +32,7 @@ export default function Read() {
   const [jumpError, setJumpError] = useState<string | null>(null);
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [query, setQuery] = useState<string>('');
+  const [syncTick, setSyncTick] = useState(0);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
   const didInitRef = useRef(false);
@@ -62,6 +64,25 @@ export default function Read() {
     if (key) return;
     if (pick === '1') setOpen(true);
   }, [searchParams]);
+
+  useEffect(() => {
+    const handler = async () => {
+      await bootstrap();
+      const nextState = useAppStore.getState().state;
+      if (nextState?.lastPageNumber) {
+        setPageNumber(nextState.lastPageNumber);
+      }
+      if (nextState?.lastVerseKey) {
+        const { chapter: c, verse: v } = parseVerseKey(nextState.lastVerseKey);
+        if (c) setChapter(c);
+        if (v) setVerseInput(String(v));
+      }
+      await loadBookmarks();
+      setSyncTick((v) => v + 1);
+    };
+    window.addEventListener('ngaji-sync', handler as EventListener);
+    return () => window.removeEventListener('ngaji-sync', handler as EventListener);
+  }, [bootstrap]);
 
   const currentChapter = useMemo(() => chapters.find(c => c.id === chapter), [chapters, chapter]);
   const filteredChapters = useMemo(() => {
@@ -130,7 +151,7 @@ export default function Read() {
     }
   }
 
-  function loadBookmarks() {
+  async function loadBookmarks() {
     const raw = localStorage.getItem('ngaji_bookmarks_v1');
     const list = raw ? (JSON.parse(raw) as Array<{ key: string; note: string; createdAt: string }>) : [];
     setBookmarks(list);
@@ -254,15 +275,20 @@ export default function Read() {
             pageNumber={pageNumber}
             verses={verses}
             header={header}
-            onBookmarksChange={loadBookmarks}
+            onBookmarksChange={async () => {
+              await loadBookmarks();
+              await pushSyncIfAuthed();
+            }}
             onSaveProgress={(verseKey, page) => {
               updateProgress(verseKey, page).then(() => {
                 recordSavedPage(page);
+                pushSyncIfAuthed();
                 setSaveToast('Progress disimpan');
                 setTimeout(() => setSaveToast(null), 1800);
               });
             }}
             lastSavedKey={state?.lastVerseKey}
+            syncKey={syncTick}
           />
         )}
       </motion.div>
@@ -316,6 +342,7 @@ export default function Read() {
                       const next = list.filter(x => x.key !== b.key);
                       localStorage.setItem('ngaji_bookmarks_v1', JSON.stringify(next));
                       setBookmarks(next);
+                      pushSyncIfAuthed();
                     }}
                     className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700"
                   >

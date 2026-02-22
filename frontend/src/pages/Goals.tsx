@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import Button from '../components/Button';
 import { useAppStore } from '../store/useAppStore';
 import { clamp, pagesLeft, pagesPerDay } from '../lib/format';
+import { pushSyncIfAuthed } from '../lib/sync';
 
 export default function Goals() {
   const { state, bootstrap, updateGoals } = useAppStore();
@@ -52,7 +53,8 @@ export default function Goals() {
         </div>
 
         <div className="mt-4">
-          <Button onClick={() => updateGoals(days).then(() => {
+          <Button onClick={() => updateGoals(days).then(async () => {
+            await pushSyncIfAuthed();
             setToast('Goals berhasil disimpan');
             setTimeout(() => setToast(null), 1800);
           })}>
