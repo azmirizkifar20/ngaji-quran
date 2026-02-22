@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import Read from '../pages/Read';
 import Goals from '../pages/Goals';
 import NavBar from '../components/NavBar';
+import PwaUpdatePrompt from '../components/PwaUpdatePrompt';
 
 function PageWrap({ children }: { children: React.ReactNode }) {
   return (
@@ -35,6 +36,7 @@ export default function App() {
       </AnimatePresence>
 
       <NavBar />
+      <PwaUpdatePrompt />
     </div>
   );
 }
