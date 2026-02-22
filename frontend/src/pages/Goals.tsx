@@ -6,15 +6,17 @@ import { clamp, pagesLeft, pagesPerDay } from '../lib/format';
 
 export default function Goals() {
   const { state, bootstrap, updateGoals } = useAppStore();
-  const [days, setDays] = useState<number>(state?.targetDays ?? 30);
+  const [daysInput, setDaysInput] = useState<string>(String(state?.targetDays ?? 30));
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
-  useEffect(() => { if (state?.targetDays) setDays(state.targetDays); }, [state?.targetDays]);
+  useEffect(() => { if (state?.targetDays) setDaysInput(String(state.targetDays)); }, [state?.targetDays]);
 
   const total = state?.totalPages ?? 604;
   const current = state?.lastPageNumber ?? 1;
   const left = pagesLeft(total, current);
 
+  const days = clamp(Number(daysInput || 0), 1, 3650);
   const perDay = useMemo(() => pagesPerDay(total, current, days), [total, current, days]);
 
   return (
@@ -28,8 +30,8 @@ export default function Goals() {
         <div className="text-sm font-semibold">Target hari sampai khatam</div>
         <div className="mt-2 flex items-center gap-3">
           <input
-            value={days}
-            onChange={(e) => setDays(clamp(Number(e.target.value || 0), 1, 3650))}
+            value={daysInput}
+            onChange={(e) => setDaysInput(e.target.value.replace(/[^\d]/g, ''))}
             type="number"
             min={1}
             max={3650}
@@ -50,7 +52,12 @@ export default function Goals() {
         </div>
 
         <div className="mt-4">
-          <Button onClick={() => updateGoals(days)}>Simpan goals</Button>
+          <Button onClick={() => updateGoals(days).then(() => {
+            setToast('Goals berhasil disimpan');
+            setTimeout(() => setToast(null), 1800);
+          })}>
+            Simpan goals
+          </Button>
         </div>
       </Card>
 
@@ -60,6 +67,12 @@ export default function Goals() {
           Sistem menghitung target berdasarkan sisa halaman (total 604 halaman). Kamu bisa ubah total halaman di backend jika memakai mushaf/page mapping berbeda.
         </div>
       </Card>
+
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
