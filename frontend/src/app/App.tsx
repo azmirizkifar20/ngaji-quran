@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Home from '../pages/Home';
 import Read from '../pages/Read';
 import Goals from '../pages/Goals';
+import AuthPage from '../pages/AuthPage';
 import NavBar from '../components/NavBar';
 import PwaUpdatePrompt from '../components/PwaUpdatePrompt';
 
@@ -22,21 +23,23 @@ function PageWrap({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const location = useLocation();
+  const isAuth = location.pathname.startsWith('/auth');
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-24 pt-4">
+    <div className={isAuth ? 'min-h-[100dvh]' : 'mx-auto max-w-[720px] px-4 pb-24 pt-4'}>
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<PageWrap><Home /></PageWrap>} />
           <Route path="/read" element={<PageWrap><Read /></PageWrap>} />
           <Route path="/goals" element={<PageWrap><Goals /></PageWrap>} />
+          <Route path="/auth" element={<AuthPage />} />
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AnimatePresence>
 
-      <NavBar />
-      <PwaUpdatePrompt />
+      {!isAuth && <NavBar />}
+      {!isAuth && <PwaUpdatePrompt />}
     </div>
   );
 }

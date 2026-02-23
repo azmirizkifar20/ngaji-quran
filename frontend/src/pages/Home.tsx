@@ -1,4 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import ProgressRing from '../components/ProgressRing';
@@ -7,9 +8,10 @@ import { pagesLeft, pagesPerDay, remainingDaysFromStart, prettyDate } from '../l
 import { Flame, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import { api, getAuthEmail } from '../lib/api';
 import { getLocalSyncUpdatedAt, pullSyncOnlyIfAuthed, pushSyncIfAuthed } from '../lib/sync';
-import AuthModal from '../components/AuthModal';
+
 
 export default function Home() {
+  const navigate = useNavigate();
   const { bootstrap, state, error, chapters } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
   const [todayStr, setTodayStr] = useState<string>(new Date().toISOString().slice(0, 10));
@@ -18,13 +20,17 @@ export default function Home() {
   const [surahStat, setSurahStat] = useState<{ name: string; current: number; total: number } | null>(null);
   const [juzStat, setJuzStat] = useState<{ juz: number; index: number; total: number } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [authOpen, setAuthOpen] = useState(false);
   const [authEmail, setAuthEmail] = useState<string | null>(getAuthEmail());
   const [syncAt, setSyncAt] = useState<string | null>(getLocalSyncUpdatedAt());
   const [syncing, setSyncing] = useState(false);
   const [syncTick, setSyncTick] = useState(0);
 
   useEffect(() => { bootstrap(); }, [bootstrap]);
+  useEffect(() => {
+    const onAuth = () => setAuthEmail(getAuthEmail());
+    window.addEventListener('ngaji-auth', onAuth);
+    return () => window.removeEventListener('ngaji-auth', onAuth);
+  }, []);
   useEffect(() => {
     const updateToday = () => setTodayStr(new Date().toISOString().slice(0, 10));
     const id = setInterval(updateToday, 60 * 1000);
@@ -131,7 +137,7 @@ export default function Home() {
               className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-60"
               onClick={async () => {
                 if (!authEmail) {
-                  setAuthOpen(true);
+                  navigate(`/auth?mode=login&redirect=${encodeURIComponent('/')}`);
                   return;
                 }
                 setSyncing(true);
@@ -153,7 +159,7 @@ export default function Home() {
             <button
               type="button"
               className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50"
-              onClick={() => setAuthOpen(true)}
+              onClick={() => navigate(`/auth?mode=login&redirect=${encodeURIComponent('/')}`)}
               aria-label="Profile"
               title="Profile"
             >
@@ -334,24 +340,6 @@ export default function Home() {
         </div>
       )}
 
-      <AuthModal
-        open={authOpen}
-        onClose={() => setAuthOpen(false)}
-        onAuthed={(email) => {
-          setAuthEmail(email);
-          setAuthOpen(false);
-          bootstrap();
-          setSyncAt(getLocalSyncUpdatedAt());
-          setToast('Sinkronisasi aktif');
-          setTimeout(() => setToast(null), 1800);
-        }}
-        onLoggedOut={() => {
-          setAuthEmail(null);
-          setAuthOpen(false);
-          bootstrap();
-          setSyncAt(getLocalSyncUpdatedAt());
-        }}
-      />
     </div>
   );
 }
