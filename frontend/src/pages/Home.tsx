@@ -14,7 +14,7 @@ export default function Home() {
   const navigate = useNavigate();
   const { bootstrap, state, error, chapters } = useAppStore();
   const [dailyDone, setDailyDone] = useState(0);
-  const [todayStr, setTodayStr] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [todayStr, setTodayStr] = useState<string>(new Date().toLocaleDateString('en-CA'));
   const [history7, setHistory7] = useState<number[]>([]);
   const [history30, setHistory30] = useState<number[]>([]);
   const [surahStat, setSurahStat] = useState<{ name: string; current: number; total: number } | null>(null);
@@ -32,7 +32,7 @@ export default function Home() {
     return () => window.removeEventListener('ngaji-auth', onAuth);
   }, []);
   useEffect(() => {
-    const updateToday = () => setTodayStr(new Date().toISOString().slice(0, 10));
+    const updateToday = () => setTodayStr(new Date().toLocaleDateString('en-CA'));
     const id = setInterval(updateToday, 60 * 1000);
     const onFocus = () => updateToday();
     document.addEventListener('visibilitychange', onFocus);
@@ -64,7 +64,7 @@ export default function Home() {
       for (let i = days - 1; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
+        const key = d.toLocaleDateString('en-CA');
         const list = history[key] || [];
         out.push(list.length ? (Math.max(...list) - Math.min(...list) + 1) : 0);
       }
@@ -343,6 +343,5 @@ export default function Home() {
     </div>
   );
 }
-
 
 

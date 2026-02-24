@@ -158,7 +158,7 @@ export default function Read() {
   }
 
   function recordSavedPage(page: number) {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toLocaleDateString('en-CA');
     const hKey = 'ngaji_saved_pages_v1';
     const hRaw = localStorage.getItem(hKey);
     const history = hRaw ? (JSON.parse(hRaw) as Record<string, number[]>) : {};
