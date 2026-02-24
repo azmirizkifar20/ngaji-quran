@@ -269,6 +269,7 @@ export default function Home() {
               localStorage.removeItem('ngaji_saved_pages_v1');
               localStorage.removeItem('ngaji_history_v1');
               localStorage.removeItem('ngaji_page_meta_v1');
+              localStorage.removeItem('ngaji_last_saved_v1');
               localStorage.removeItem('ngaji_daily_date');
               localStorage.removeItem('ngaji_daily_start_page');
               localStorage.removeItem('ngaji_daily_done');
@@ -343,5 +344,4 @@ export default function Home() {
     </div>
   );
 }
-
 

@@ -282,6 +282,7 @@ export default function Read() {
             onSaveProgress={(verseKey, page) => {
               updateProgress(verseKey, page).then(() => {
                 recordSavedPage(page);
+                localStorage.setItem('ngaji_last_saved_v1', JSON.stringify({ key: verseKey, page }));
                 pushSyncIfAuthed();
                 setSaveToast('Progress disimpan');
                 setTimeout(() => setSaveToast(null), 1800);
