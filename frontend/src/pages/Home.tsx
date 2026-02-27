@@ -128,7 +128,13 @@ export default function Home() {
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-lg sm:text-xl font-semibold tracking-tight">{state?.name ? `Ngaji Quran • ${state.name}` : 'Ngaji Quran'}</div>
-          <div className="text-xs sm:text-sm text-zinc-500">Premium light • fokus & konsisten</div>
+          <div className="mt-1 flex items-center gap-2 text-xs sm:text-sm text-zinc-500">
+            <span>v1.0.0</span>
+            <span className="text-zinc-400">•</span>
+            <a href="/changelog" className="underline underline-offset-4 hover:text-zinc-700">
+              changelog
+            </a>
+          </div>
         </div>
         <div className="text-right">
           <div className="flex items-center justify-end gap-2">
@@ -344,4 +350,3 @@ export default function Home() {
     </div>
   );
 }
-

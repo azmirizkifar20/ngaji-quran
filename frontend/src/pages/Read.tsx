@@ -157,13 +157,19 @@ export default function Read() {
     setBookmarks(list);
   }
 
-  function recordSavedPage(page: number) {
+  function recordSavedPage(page: number, prevPage?: number) {
     const today = new Date().toLocaleDateString('en-CA');
     const hKey = 'ngaji_saved_pages_v1';
     const hRaw = localStorage.getItem(hKey);
     const history = hRaw ? (JSON.parse(hRaw) as Record<string, number[]>) : {};
     const list = new Set<number>(history[today] || []);
-    list.add(page);
+
+    if (list.size === 0 && prevPage && prevPage < page) {
+      for (let p = prevPage + 1; p <= page; p += 1) list.add(p);
+    } else {
+      list.add(page);
+    }
+
     history[today] = Array.from(list.values()).sort((a, b) => a - b);
     localStorage.setItem(hKey, JSON.stringify(history));
   }
@@ -280,8 +286,9 @@ export default function Read() {
               await pushSyncIfAuthed();
             }}
             onSaveProgress={(verseKey, page) => {
+              const prevPage = state?.lastPageNumber;
               updateProgress(verseKey, page).then(() => {
-                recordSavedPage(page);
+                recordSavedPage(page, prevPage);
                 localStorage.setItem('ngaji_last_saved_v1', JSON.stringify({ key: verseKey, page }));
                 pushSyncIfAuthed();
                 setSaveToast('Progress disimpan');
