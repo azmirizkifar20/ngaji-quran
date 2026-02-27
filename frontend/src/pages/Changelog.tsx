@@ -4,12 +4,19 @@ import { Link } from 'react-router-dom';
 type Entry = {
   version: string;
   date: string;
-  type: 'Bug Fixes' | 'New Features';
+  type: 'Bug Fixes' | 'New Features' | 'Improvement';
   title: string;
   detail: string;
 };
 
 const entries: Entry[] = [
+  {
+    version: 'v1.0.1',
+    date: 'Feb 27, 2026',
+    type: 'Improvement',
+    title: 'Sinkronisasi lebih responsif dan tampilan changelog lebih rapi.',
+    detail: 'Tombol sync kini langsung melakukan pull data dan refresh UI tanpa perlu clear cache. Halaman changelog dibuat lebih bersih dan mudah dibaca.',
+  },
   {
     version: 'v1.0.0',
     date: 'Feb 27, 2026',
@@ -29,6 +36,11 @@ const typeStyles: Record<Entry['type'], { dot: string; label: string; link: stri
     dot: 'bg-emerald-500',
     label: 'text-emerald-600',
     link: 'text-emerald-600',
+  },
+  Improvement: {
+    dot: 'bg-blue-500',
+    label: 'text-blue-600',
+    link: 'text-blue-600',
   },
 };
 
