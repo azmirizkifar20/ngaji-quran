@@ -1,0 +1,44 @@
+name: Deploy via Tailscale SSH
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Connect to Tailscale 🕸️
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+          version: 1.44.0
+
+      - name: Deploy to Server 🚀
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /var/www/html/ngaji-quran
+            git pull origin main
+
+            echo "📦 Build backend"
+            cd backend
+            npm install
+            npm run build
+            pm2 startOrReload ecosystem.config.cjs --update-env
+
+            echo "🎨 Build frontend"
+            cd ../frontend
+            npm install
+            npm run build
+            pm2 startOrReload ecosystem.config.cjs --update-env
+
+            echo "✅ Deploy ngaji-quran berhasil"
