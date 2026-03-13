@@ -171,8 +171,9 @@ export default function Read() {
       ? page - 1
       : page;
 
-    if (list.size === 0 && prevPage && prevPage < effectivePage) {
-      for (let p = prevPage + 1; p <= effectivePage; p += 1) list.add(p);
+    if (list.size === 0 && prevPage && prevPage <= effectivePage) {
+      // first save of the day: count from starting page as read range
+      for (let p = prevPage; p <= effectivePage; p += 1) list.add(p);
     } else {
       list.add(effectivePage);
     }
