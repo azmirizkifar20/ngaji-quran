@@ -11,6 +11,13 @@ type Entry = {
 
 const entries: Entry[] = [
   {
+    version: 'v1.0.2',
+    date: 'Mar 07, 2026',
+    type: 'Improvement',
+    title: 'Migrasi database ke MySQL + kompatibilitas endpoint verse ditingkatkan.',
+    detail: 'Backend sekarang memakai MySQL (migrasi schema dan data dari SQLite sudah dilakukan). Endpoint /api/quran/verse kini menerima parameter key maupun verseKey agar kompatibel dengan klien lama/baru.',
+  },
+  {
     version: 'v1.0.1',
     date: 'Feb 27, 2026',
     type: 'Improvement',
