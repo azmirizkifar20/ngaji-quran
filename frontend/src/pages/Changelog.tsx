@@ -11,6 +11,13 @@ type Entry = {
 
 const entries: Entry[] = [
   {
+    version: 'v1.0.3',
+    date: 'Mar 13, 2026',
+    type: 'Bug Fixes',
+    title: 'Perhitungan actual halaman diperbaiki sesuai pola save di ayat awal halaman berikutnya.',
+    detail: 'Jika progress disimpan di ayat pertama halaman berikutnya, sistem kini menghitung halaman terakhir yang benar-benar selesai dibaca (bukan halaman next). Save pertama harian juga sudah memasukkan halaman awal baca agar total actual tidak kurang.',
+  },
+  {
     version: 'v1.0.2',
     date: 'Mar 07, 2026',
     type: 'Improvement',
