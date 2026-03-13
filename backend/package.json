@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "db:migrate": "knex --knexfile knexfile.cjs migrate:latest",
     "db:rollback": "knex --knexfile knexfile.cjs migrate:rollback",
-    "db:status": "knex --knexfile knexfile.cjs migrate:status"
+    "db:status": "knex --knexfile knexfile.cjs migrate:status",
+    "db:migrate:mysql": "DB_CLIENT=mysql2 knex --knexfile knexfile.cjs migrate:latest",
+    "db:import:sqlite": "tsx scripts/migrate-sqlite-to-mysql.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -22,6 +24,7 @@
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "morgan": "^1.10.0",
+    "mysql2": "^3.12.0",
     "node-cache": "^5.1.2",
     "sqlite3": "^5.1.7",
     "zod": "^3.23.8"
