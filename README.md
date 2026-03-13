@@ -48,13 +48,14 @@ npm run build
 npm run start
 ```
 
-### Frontend
+### Frontend (static build untuk Nginx)
 ```bash
 cd frontend
 npm install
 npm run build
-npm run preview
 ```
+
+Output static ada di `frontend/dist` dan disajikan oleh Nginx (reverse proxy/static root).
 
 ### PM2 (recommended)
 ```bash
@@ -62,14 +63,7 @@ npm run preview
 cd backend
 npm run build
 pm2 startOrReload ecosystem.config.cjs --update-env
-
-# Frontend (preview server)
-cd frontend
-npm run build
-pm2 startOrReload ecosystem.config.cjs --update-env
 ```
-
-> Frontend preview default: `http://0.0.0.0:4173`
 
 ## CI/CD (GitHub Actions)
 Workflow tersedia di:
@@ -83,7 +77,8 @@ Flow deploy:
 2. Connect ke Tailscale
 3. SSH ke server
 4. `git pull origin main`
-5. Build + reload PM2 untuk backend dan frontend
+5. Build backend + reload PM2 backend
+6. Build frontend static (tanpa PM2/preview) untuk disajikan via Nginx
 
 GitHub Secrets yang wajib diset:
 - `TAILSCALE_AUTHKEY`

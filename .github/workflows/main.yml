@@ -26,6 +26,16 @@ jobs:
           port: 22
           script: |
             set -e
+
+            # Load Node.js from NVM for non-interactive SSH shell
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            nvm use --lts >/dev/null 2>&1 || nvm use default >/dev/null 2>&1 || true
+
+            command -v node >/dev/null || { echo "❌ node not found in PATH"; exit 1; }
+            command -v npm >/dev/null || { echo "❌ npm not found in PATH"; exit 1; }
+            command -v pm2 >/dev/null || { echo "❌ pm2 not found in PATH"; exit 1; }
+
             cd /var/www/html/ngaji-quran
             git pull origin main
 
@@ -35,10 +45,9 @@ jobs:
             npm run build
             pm2 startOrReload ecosystem.config.cjs --update-env
 
-            echo "🎨 Build frontend"
+            echo "🎨 Build frontend (static)"
             cd ../frontend
             npm install
             npm run build
-            pm2 startOrReload ecosystem.config.cjs --update-env
 
-            echo "✅ Deploy ngaji-quran berhasil"
+            echo "✅ Deploy ngaji-quran berhasil (frontend static via Nginx)"
