@@ -13,7 +13,8 @@ export const getChapters: RequestHandler = async (_req, res, next) => {
 
 export const getVerse: RequestHandler = async (req, res, next) => {
   try {
-    const key = z.string().regex(/^\d+:\d+$/).parse(req.query.key);
+    const verseKeyInput = req.query.key ?? req.query.verseKey;
+    const key = z.string().regex(/^\d+:\d+$/).parse(verseKeyInput);
     const words = z.coerce.boolean().default(false).parse(req.query.words);
     const data = await quranService.verseByKey(key, words);
     res.json(data);
